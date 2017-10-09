@@ -3,6 +3,7 @@ package arthur.douban.httpUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Iterator;
@@ -37,36 +38,45 @@ public class UHttpClient {
 	}
 	public static  String get(String url){
 		String returnStr ;
+		CloseableHttpResponse response = null ;
         try {
             HttpGet httpGet = new HttpGet(url);
-            CloseableHttpResponse response = httpclient.execute(httpGet);
-            HttpEntity entity = response.getEntity();
+            response  = httpclient.execute(httpGet);
+            
             StatusLine httpStatus = response.getStatusLine();
             int statusCode = httpStatus.getStatusCode();
             if( statusCode== 200){
+            	HttpEntity entity = response.getEntity();
             	ByteArrayOutputStream bao = new ByteArrayOutputStream();
             	entity.writeTo(bao);
+            	EntityUtils.consume(entity);
             	returnStr = new String(bao.toByteArray(),"UTF-8");
             }else{
-            	return statusCode+"";
+            	log.info("«Î«Û ß∞‹ code:"+statusCode+",url:"+url);
+            	returnStr = "-1";
             }
-            EntityUtils.consume(entity);
         }catch(Exception e){
         	log.error(e);
-        	return "$error";
+        	returnStr = "-1";
+        }finally{
+        	if(response!=null){
+        		try {
+					response.close();
+				} catch (IOException e) {
+				}
+        	}
         }
         return returnStr;
 	}
 	public static void main(String[] args) {
 		try {
-			login();
-			String string = get("https://www.douban.com");
+//			login();
+			String string = get("https://h5.ele.me/hongbao/#hardware_id=&is_lucky_group=True&lucky_number=8&track_id=&platform=0&sn=29cfa37ddfa8bca9&theme_id=1353&device_id=");
 			log.info(string);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 	}
 	public static void login() throws Exception{
 		

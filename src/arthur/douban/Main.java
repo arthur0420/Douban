@@ -1,20 +1,23 @@
 package arthur.douban;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Timer;
 
-import arthur.douban.entity.XiaoZu;
-import arthur.douban.httpUtils.UHttpClient;
+import arthur.douban.entity.Group;
+import arthur.douban.process.GroupProcess;
+import arthur.douban.process.GroupTimerTask;
 
 public class Main {
-		
-	List<XiaoZu> groupList = new ArrayList<XiaoZu>();
+	
 	public static void main(String[] args) throws IOException {
-		
+		init();
+	}
+	public static void startScan(){
+		Timer timer = new Timer();
+		timer.schedule(new GroupTimerTask(),3000, 5*60*1000);
+	}
+	public static void init(){
+		GroupProcess groupProcess = new GroupProcess(new Group("1","shenzhen","https://www.douban.com/group/shenzhen/" , 0));
+		groupProcess.start();
 	}
 }
