@@ -17,7 +17,7 @@ public class Main {
 		timer.schedule(new GroupTimerTask(),3000, 5*60*1000);
 	}
 	public static void init(){
-		GroupProcess groupProcess = new GroupProcess(new Group("1","shenzhen","https://www.douban.com/group/shenzhen/" , 0));
+		GroupProcess groupProcess = new GroupProcess(new Group("1","blabla","https://www.douban.com/group/blabla/" , 0));
 		groupProcess.start();
 	}
 }

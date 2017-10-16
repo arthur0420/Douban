@@ -3,6 +3,7 @@ package arthur.douban.process;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.security.auth.login.LoginContext;
@@ -26,9 +27,14 @@ public class GroupProcess extends ProcessBasic {
 	long nowBreakpoint = 0;
 	long firstTime = 0; // 第一页的 第一个帖子的，最新回复时间 ，将成为下一个   断点。
 	int tryAgainTime = 0;
+	int year = 0;
+	String group_name ;
 	public GroupProcess(Group entity){
 		this.entity = entity;
 		nowBreakpoint = entity.getBreakpoint();
+		group_name = entity.getName();
+		Calendar c =Calendar.getInstance();
+		year =c.get(Calendar.YEAR); 
 	}
 	@Override
 	public void run() {
@@ -59,7 +65,7 @@ public class GroupProcess extends ProcessBasic {
 			log.info(entity.getName()+",page:"+pageIndex);
 			pageIndex++;
 			try {
-				Thread.sleep(500);
+				Thread.sleep(200);
 			} catch (Exception e) {
 			}
 		}
@@ -87,7 +93,6 @@ public class GroupProcess extends ProcessBasic {
 			String topicUrl = title.attr("href");
 			//to topicProcess
 			
-			
 			Element author = tds.get(1).getElementsByTag("a").get(0);
 			String authorName = author.text();
 			String authorUrl =  author.attr("href");
@@ -107,8 +112,9 @@ public class GroupProcess extends ProcessBasic {
 			String id = split[split.length-1];
 			String[] split2 = authorUrl.split("/");
 			String author_id = split2[split2.length-1];
-			Topic topic = new Topic(id, titleText, author_id, parseTime, 0, "");
+			Topic topic = new Topic(id, titleText, author_id, parseTime, 0, "",0,group_name);
 			ConnectionUtils.insertEntity(topic);
+			
 		}
 		if(trs.size()<25){
 			log.info("size:"+trs.size());
@@ -120,7 +126,8 @@ public class GroupProcess extends ProcessBasic {
 		try {
 			SimpleDateFormat sdf =null;
 			if(str.length() == 11){
-				sdf = new SimpleDateFormat("MM-dd HH:mm");
+				str = year+"-"+str;
+				sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 			}else{
 				sdf = new SimpleDateFormat("yyyy-MM-dd");
 			}
@@ -137,4 +144,9 @@ public class GroupProcess extends ProcessBasic {
 		entity.setBreakpoint(firstTime);
 		ConnectionUtils.updateEntity(entity);
 	}
+	/*public static void main(String[] args) {
+		String string = UHttpClient.get("https://www.douban.com/group/shenzhen/discussion?start=1000");
+		GroupProcess groupProcess = new GroupProcess(new Group("1","shenzhen","https://www.douban.com/group/shenzhen/" , 0));
+		groupProcess.parseHtml(string);
+	}*/
 }

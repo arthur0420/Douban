@@ -32,6 +32,7 @@ public class UHttpClient {
 	
 	private static  CloseableHttpClient httpclient = null;
 	static{
+		// TODO„ÄÄ ÈÖçÁΩÆÂåñ„ÄÇ
 		phcm.setMaxTotal(200);
 		phcm.setDefaultMaxPerRoute(20);
 		httpclient = HttpClients.custom().setConnectionManager(phcm).setDefaultCookieStore(cookieStore).build();
@@ -52,7 +53,7 @@ public class UHttpClient {
             	EntityUtils.consume(entity);
             	returnStr = new String(bao.toByteArray(),"UTF-8");
             }else{
-            	log.info("«Î«Û ß∞‹ code:"+statusCode+",url:"+url);
+            	log.info("ËØ∑Ê±ÇÂ§±Ë¥• code:"+statusCode+",url:"+url);
             	returnStr = "-1";
             }
         }catch(Exception e){
@@ -68,10 +69,26 @@ public class UHttpClient {
         }
         return returnStr;
 	}
+	
 	public static void main(String[] args) {
 		try {
 //			login();
-			String string = get("https://h5.ele.me/hongbao/#hardware_id=&is_lucky_group=True&lucky_number=8&track_id=&platform=0&sn=29cfa37ddfa8bca9&theme_id=1353&device_id=");
+			
+			for(int i = 0 ; i< 999; i++){
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						String string = get("https://www.douban.com");
+						try {
+							Thread.sleep(10);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}).start();
+			}
+			String string = get("https://www.zhihu.com/question/47464143");
 			log.info(string);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -79,7 +96,6 @@ public class UHttpClient {
 		}
 	}
 	public static void login() throws Exception{
-		
 		   try {
 	            HttpGet httpget = new HttpGet("https://www.douban.com/");
 	            httpget.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393");
@@ -131,4 +147,6 @@ public class UHttpClient {
 	        } finally {
 	        }
 		}
+	
+	
 }

@@ -28,8 +28,8 @@ public class ConnectionUtils {
         return conn;
     }
     public static void main(String[] args) throws SQLException {
-    	Topic t = new Topic("123", "测试2", "123", 123321, 123333, "测试法阿斯蒂芬");
-    	updateEntity(t);
+//    	Topic t = new Topic("123", "测试2", "123", 123321, 123333, "测试法阿斯蒂芬");
+//    	updateEntity(t);
 	}
     
     public static  <T> void  insertEntity(T obj){
@@ -39,7 +39,6 @@ public class ConnectionUtils {
 		try {
 			conn = ConnectionUtils.getConnection();
 			state = conn.createStatement();
-			
 			
 			Entity annotationEntity = (Entity)clazz.getAnnotation(Entity.class);
 			String tableName = annotationEntity.tableName();
@@ -88,6 +87,9 @@ public class ConnectionUtils {
 						insertSql2 = insertSql2+" '"+valueStr+"',";
 						break; 
 					case "long":
+						insertSql2 = insertSql2+""+value+",";
+						break;
+					case "int":
 						insertSql2 = insertSql2+""+value+",";
 						break;
 					default:
@@ -212,6 +214,9 @@ public class ConnectionUtils {
 			case "long":
 				long l = re.getLong(tableFieldName);
 				return l;
+			case "int":
+				int i = re.getInt(tableFieldName);
+				return i;
 			default:
 				throw new RuntimeException("未能识别的数据类型");
 		}
@@ -267,6 +272,9 @@ public class ConnectionUtils {
 					case "long":
 						updateSql = updateSql +tableFieldName+"="+value+" ,";
 						break;
+					case "int":
+						updateSql = updateSql +tableFieldName+"="+value+" ,";
+						break;
 					default:
 						throw new RuntimeException("未能识别的数据类型");
 				}
@@ -277,6 +285,46 @@ public class ConnectionUtils {
 			int executeUpdate = state.executeUpdate(updateSql);
 			if(executeUpdate !=1){
 				log.error("update fail");
+			}
+		} catch (Exception e) {
+			log.error("",e);
+		}finally{
+			try {if(state!=null){state.close();}} catch (Exception e2) {}
+			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
+		}
+    }
+    
+    
+    public static  <T> void  deleteEntity(T obj){
+    	Connection conn = null;
+		Statement state = null;
+		Class clazz = obj.getClass();
+		try {
+			conn = ConnectionUtils.getConnection();
+			state = conn.createStatement();
+			
+			Entity annotationEntity = (Entity)clazz.getAnnotation(Entity.class);
+			String tableName = annotationEntity.tableName();
+			Field field = clazz.getDeclaredField("id");
+			arthur.douban.dataUtils.Field anno= field.getAnnotation(arthur.douban.dataUtils.Field.class);
+			String fieldName = "id";
+			if(anno !=null){
+				fieldName =  anno.fiedlName();
+			}
+			String id = "";
+			Method method = clazz.getMethod("getId");
+			id = (String)method.invoke(obj);
+			if(id== null || id.equals("")){
+				log.error("error id 为空");
+				return;
+			}
+			String updateSql = "  delete from "+tableName+"   ";
+			updateSql  = updateSql.substring(0,updateSql.length()-1);
+			updateSql = updateSql+" where "+fieldName +" = '"+id+"'";
+//			System.out.println(updateSql);
+			int executeUpdate = state.executeUpdate(updateSql);
+			if(executeUpdate !=1){
+				log.error("delete fail");
 			}
 		} catch (Exception e) {
 			log.error("",e);

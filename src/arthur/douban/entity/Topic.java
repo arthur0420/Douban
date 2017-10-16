@@ -1,39 +1,58 @@
 package arthur.douban.entity;
 
 
-import org.apache.log4j.Logger;
 
 import arthur.douban.dataUtils.Entity;
 import arthur.douban.dataUtils.Field;
 
+/**
+ * @author ouyangyasi
+ *
+ */
 @Entity(tableName="topic")
 public class Topic {
 	
-	@Field(fiedlName="topic_id")
-	String id;
-	
-	String title ;
-	String author_id;
-	long last_reply_time;
-	long publish_time;
-	String content;
-	
-	public void setLast_reply_time(long last_reply_time) {
-		this.last_reply_time = last_reply_time;
+	public long getFlush_time() {
+		return flush_time;
 	}
-	public void setPublish_time(long publish_time) {
-		this.publish_time = publish_time;
+	public void setFlush_time(long flush_time) {
+		this.flush_time = flush_time;
 	}
-	public Topic(String id, String title,
-			String author_id, long last_reply_time, long publish_time,
-			String content) {
+	public Topic(String id, String title, String author_id,
+			long last_reply_time, long publish_time, String content,
+			long flush_time, String group_name) {
+		super();
 		this.id = id;
 		this.title = title;
 		this.author_id = author_id;
 		this.last_reply_time = last_reply_time;
 		this.publish_time = publish_time;
 		this.content = content;
+		this.flush_time = flush_time;
+		this.group_name = group_name;
 	}
+	public String getGroup_name() {
+		return group_name;
+	}
+	public void setGroup_name(String group_name) {
+		this.group_name = group_name;
+	}
+	@Field(fiedlName="topic_id")
+	String id;
+	String title ;
+	String author_id;
+	long last_reply_time;
+	long publish_time;
+	String content;
+	long flush_time;
+	String group_name;
+	public void setLast_reply_time(long last_reply_time) {
+		this.last_reply_time = last_reply_time;
+	}
+	public void setPublish_time(long publish_time) {
+		this.publish_time = publish_time;
+	}
+	
 	public Topic(){
 	}
 	public String getTitle() {
