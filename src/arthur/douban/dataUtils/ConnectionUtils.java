@@ -28,7 +28,7 @@ public class ConnectionUtils {
         return conn;
     }
     public static void main(String[] args) throws SQLException {
-//    	Topic t = new Topic("123", "²âÊÔ2", "123", 123321, 123333, "²âÊÔ·¨°¢Ë¹µÙ·Ò");
+//    	Topic t = new Topic("123", "æµ‹è¯•2", "123", 123321, 123333, "æµ‹è¯•æ³•é˜¿æ–¯è’‚èŠ¬");
 //    	updateEntity(t);
 	}
     
@@ -53,7 +53,7 @@ public class ConnectionUtils {
 			id = (String)method.invoke(obj);
 			
 			String sql = "select * from "+tableName+" where  "+fieldName+" = '"+id+"'";
-			ResultSet re = state.executeQuery(sql);   // ÊÇ²»ÊÇ´æÔÚ
+			ResultSet re = state.executeQuery(sql);   // æ˜¯ä¸æ˜¯å­˜åœ¨
 			if(re.next()){
 				System.out.println("to update");
 				updateEntity(obj);
@@ -82,7 +82,7 @@ public class ConnectionUtils {
 					case "String":
 						String valueStr =  value.toString();
 						if(valueStr.indexOf("'")!=-1){
-							valueStr = valueStr.replaceAll("'", "¡®"); 
+							valueStr = valueStr.replaceAll("'", "â€˜"); 
 						}
 						insertSql2 = insertSql2+" '"+valueStr+"',";
 						break; 
@@ -93,7 +93,7 @@ public class ConnectionUtils {
 						insertSql2 = insertSql2+""+value+",";
 						break;
 					default:
-						throw new RuntimeException("Î´ÄÜÊ¶±ğµÄÊı¾İÀàĞÍ");
+						throw new RuntimeException("æœªèƒ½è¯†åˆ«çš„æ•°æ®ç±»å‹");
 				}
 			}
 			insertSql1 = insertSql1.substring(0, insertSql1.length()-1);
@@ -112,8 +112,8 @@ public class ConnectionUtils {
     }
     
     /**
-     * ·ºĞÍÈ·¶¨Òª·µ»ØµÄentityÀàĞÍ£¬  ×¢½â±êÖ¾entityµÄ±íÃûºÍ×Ö¶Î±ğÃû
-     * ·´ÉäÖ´ĞĞ¡£
+     * æ³›å‹ç¡®å®šè¦è¿”å›çš„entityç±»å‹ï¼Œ  æ³¨è§£æ ‡å¿—entityçš„è¡¨åå’Œå­—æ®µåˆ«å
+     * åå°„æ‰§è¡Œã€‚
      * @param id
      * @param itemClazz
      * @return
@@ -191,7 +191,7 @@ public class ConnectionUtils {
 		return resultList;
 	}
     /**
-     * »ñµÃÒ»´Î²éÑ¯£¬Ò»¸öfieldµÄÖµ
+     * è·å¾—ä¸€æ¬¡æŸ¥è¯¢ï¼Œä¸€ä¸ªfieldçš„å€¼
      * @param f
      * @param re
      * @return
@@ -218,7 +218,7 @@ public class ConnectionUtils {
 				int i = re.getInt(tableFieldName);
 				return i;
 			default:
-				throw new RuntimeException("Î´ÄÜÊ¶±ğµÄÊı¾İÀàĞÍ");
+				throw new RuntimeException("æœªèƒ½è¯†åˆ«çš„æ•°æ®ç±»å‹");
 		}
     }
     public static  <T> void  updateEntity(T obj){
@@ -241,7 +241,7 @@ public class ConnectionUtils {
 			Method method = clazz.getMethod("getId");
 			id = (String)method.invoke(obj);
 			if(id== null || id.equals("")){
-				log.error("error id Îª¿Õ");
+				log.error("error id ä¸ºç©º");
 				return;
 			}
 			String updateSql = "  update "+tableName+" set  ";
@@ -276,7 +276,7 @@ public class ConnectionUtils {
 						updateSql = updateSql +tableFieldName+"="+value+" ,";
 						break;
 					default:
-						throw new RuntimeException("Î´ÄÜÊ¶±ğµÄÊı¾İÀàĞÍ");
+						throw new RuntimeException("æœªèƒ½è¯†åˆ«çš„æ•°æ®ç±»å‹");
 				}
 			}
 			updateSql  = updateSql.substring(0,updateSql.length()-1);
@@ -315,7 +315,7 @@ public class ConnectionUtils {
 			Method method = clazz.getMethod("getId");
 			id = (String)method.invoke(obj);
 			if(id== null || id.equals("")){
-				log.error("error id Îª¿Õ");
+				log.error("error id ä¸ºç©º");
 				return;
 			}
 			String updateSql = "  delete from "+tableName+"   ";

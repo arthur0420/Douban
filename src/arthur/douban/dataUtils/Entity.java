@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Entity {
 	/**
-     * Êı¾İ±íÃû³Æ×¢½â£¬Ä¬ÈÏÖµÎªÀàÃû³Æ
+     * æ•°æ®è¡¨åç§°æ³¨è§£ï¼Œé»˜è®¤å€¼ä¸ºç±»åç§°
      * @return
      */
     public String tableName() default "";

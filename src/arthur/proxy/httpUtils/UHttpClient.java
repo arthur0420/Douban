@@ -53,7 +53,7 @@ public class UHttpClient {
             	EntityUtils.consume(entity);
             	returnStr = new String(bao.toByteArray(),"UTF-8");
             }else{
-            	log.info("«Î«Û ß∞‹ code:"+statusCode+",url:"+url);
+            	log.info("ËØ∑Ê±ÇÂ§±Ë¥• code:"+statusCode+",url:"+url);
             	returnStr = "-1";
             }
         }catch(Exception e){

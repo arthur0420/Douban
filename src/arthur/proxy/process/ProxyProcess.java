@@ -27,16 +27,16 @@ public class ProxyProcess extends ProcessBasic{
 		while(q.size()!=0 || runFlag){
 			for(int i = 0 ; i<l.size(); i++){
 				TestThread thread = l.get(i);
-				if(thread.getState().equals(Thread.State.TERMINATED)){ // Ïß³ÌÖÕ½á
+				if(thread.getState().equals(Thread.State.TERMINATED)){ // çº¿ç¨‹ç»ˆç»“
 					l.remove(thread);
 					
-				}else if(thread.isTimeout()){ // Ïß³Ì³¬Ê±
+				}else if(thread.isTimeout()){ // çº¿ç¨‹è¶…æ—¶
 					log.info(thread.p.toString()+",timeout");
 					thread.interrupt();
 					l.remove(thread);
 				}
 			}
-			if(l.size()>30){ //¡¡Ïß³Ì³Ø¡¡21¸ö¡£
+			if(l.size()>30){ //ã€€çº¿ç¨‹æ± ã€€21ä¸ªã€‚
 				try {
 					log.info("thread heap is full , wait....... queue.size:"+q.size());
 					Thread.sleep(5000);

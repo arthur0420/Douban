@@ -25,7 +25,7 @@ public class GroupProcess extends ProcessBasic {
 	Group entity ;
 	long newBreakpoint = 0;
 	long nowBreakpoint = 0;
-	long firstTime = 0; // µÚÒ»Ò³µÄ µÚÒ»¸öÌû×ÓµÄ£¬×îĞÂ»Ø¸´Ê±¼ä £¬½«³ÉÎªÏÂÒ»¸ö   ¶Ïµã¡£
+	long firstTime = 0; // ç¬¬ä¸€é¡µçš„ ç¬¬ä¸€ä¸ªå¸–å­çš„ï¼Œæœ€æ–°å›å¤æ—¶é—´ ï¼Œå°†æˆä¸ºä¸‹ä¸€ä¸ª   æ–­ç‚¹ã€‚
 	int tryAgainTime = 0;
 	int year = 0;
 	String group_name ;
@@ -47,7 +47,7 @@ public class GroupProcess extends ProcessBasic {
 				log.info("responseStr error");
 				if(tryAgainTime ==5){
 					tryAgainTime = 0;
-					log.error("ÖØÊÔÎå´Î£¬Ò³Ãæ¼ÓÔØÊ§°Ü,name:"+entity.getName()+",pageIndex:"+pageIndex);
+					log.error("é‡è¯•äº”æ¬¡ï¼Œé¡µé¢åŠ è½½å¤±è´¥,name:"+entity.getName()+",pageIndex:"+pageIndex);
 					break;
 				}else{
 					tryAgainTime++;
@@ -58,7 +58,7 @@ public class GroupProcess extends ProcessBasic {
 					continue;
 				}
 			}
-			parseHtml(responseStr); // ½âÎöÕâÒ»Ò³µÄhtml
+			parseHtml(responseStr); // è§£æè¿™ä¸€é¡µçš„html
 			if(newBreakpoint != 0 ){
 				break;
 			}
@@ -71,7 +71,7 @@ public class GroupProcess extends ProcessBasic {
 		}
 		end();
 	}
-	// ½âÎöÒ»Ò³
+	// è§£æä¸€é¡µ
 	@Override
 	void parseHtml(String str) {
 		// if has no topic then throws a exception.
@@ -135,7 +135,7 @@ public class GroupProcess extends ProcessBasic {
 			parse = sdf.parse(str);
 			time = parse.getTime();
 		} catch (Exception e) {
-			log.error("Ê±¼ä½âÎö´íÎó",e);
+			log.error("æ—¶é—´è§£æé”™è¯¯",e);
 		}
 		return time;
 	}

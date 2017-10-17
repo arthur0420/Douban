@@ -72,7 +72,6 @@ public class UHttpClient {
 	
 	public static void main(String[] args) {
 		try {
-//			login();
 			
 			for(int i = 0 ; i< 999; i++){
 				new Thread(new Runnable() {

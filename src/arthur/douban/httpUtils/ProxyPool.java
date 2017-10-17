@@ -12,7 +12,7 @@ import java.util.List;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.proxy.entity.HttpProxy;
 import arthur.proxy.entity.Proxy;
-// ÎÈ¶¨£¬ÐÂ¡£
+// ç¨³å®šï¼Œæ–°ã€‚
 
 public class ProxyPool {
 	static ArrayList<HttpProxy> l = null;

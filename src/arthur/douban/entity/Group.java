@@ -5,7 +5,7 @@ import arthur.douban.dataUtils.Entity;
 @Entity(tableName="`group`")
 public class Group {
 	String id ;
-	String name ; // Ãû×Ö
+	String name ; // åå­—
 	String url ; // 
 	long breakpoint = 0 ;
 	public Group(String id,String name,String url,long breakpoint){
