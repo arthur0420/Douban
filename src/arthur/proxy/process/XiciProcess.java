@@ -14,7 +14,7 @@ import arthur.proxy.httpUtils.UHttpClient;
 public class XiciProcess extends ProcessBasic{
 	Logger log = Logger.getLogger(XiciProcess.class);
 	String url = "http://www.xicidaili.com/nn/";
-	int num = 10;
+	int num = 2;
 	ProxyProcess p;
 	@Override
 	public void run() {

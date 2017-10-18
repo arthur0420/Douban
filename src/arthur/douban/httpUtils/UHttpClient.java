@@ -10,7 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -23,6 +25,8 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.apache.sling.commons.json.JSONObject;
+
+import arthur.proxy.entity.HttpProxy;
 
 
 public class UHttpClient {	
@@ -37,13 +41,19 @@ public class UHttpClient {
 		phcm.setDefaultMaxPerRoute(20);
 		httpclient = HttpClients.custom().setConnectionManager(phcm).setDefaultCookieStore(cookieStore).build();
 	}
-	public static  String get(String url){
-		String returnStr ;
+	public static  String  getByProxy(String url){
+		String returnStr =null;
 		CloseableHttpResponse response = null ;
+		HttpProxy proxy = null;
         try {
             HttpGet httpGet = new HttpGet(url);
+            proxy = ProxyPool.getProxy();
+            if(!proxy.getIp().equals("127.0.0.1")){
+            	HttpHost hh = new HttpHost(proxy.getIp(), proxy.getPort());
+                RequestConfig rc = RequestConfig.custom().setProxy(hh).build();
+                httpGet.setConfig(rc);
+            }
             response  = httpclient.execute(httpGet);
-            
             StatusLine httpStatus = response.getStatusLine();
             int statusCode = httpStatus.getStatusCode();
             if( statusCode== 200){
@@ -60,6 +70,53 @@ public class UHttpClient {
         	log.error(e);
         	returnStr = "-1";
         }finally{
+        	if(proxy!=null){
+        		if(returnStr!=null && returnStr.equals("-1")){
+        			ProxyPool.removeProxy(proxy);
+        		}else{
+        			proxy.close();
+        		}
+        	}
+        	if(response!=null){
+        		try {
+					response.close();
+				} catch (IOException e) {
+				}
+        	}
+        }
+        return returnStr;
+	}
+	public static  String  get(String url){
+		String returnStr =null;
+		CloseableHttpResponse response = null ;
+		HttpProxy proxy = null;
+        try {
+            HttpGet httpGet = new HttpGet(url);
+            
+            response  = httpclient.execute(httpGet);
+            StatusLine httpStatus = response.getStatusLine();
+            int statusCode = httpStatus.getStatusCode();
+            if( statusCode== 200){
+            	HttpEntity entity = response.getEntity();
+            	ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            	entity.writeTo(bao);
+            	EntityUtils.consume(entity);
+            	returnStr = new String(bao.toByteArray(),"UTF-8");
+            }else{
+            	log.info("请求失败 code:"+statusCode+",url:"+url);
+            	returnStr = "-1";
+            }
+        }catch(Exception e){
+        	log.error(e);
+        	returnStr = "-1";
+        }finally{
+        	if(proxy!=null){
+        		if(returnStr!=null && returnStr.equals("-1")){
+        			ProxyPool.removeProxy(proxy);
+        		}else{
+        			proxy.close();
+        		}
+        	}
         	if(response!=null){
         		try {
 					response.close();

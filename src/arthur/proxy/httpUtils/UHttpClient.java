@@ -79,16 +79,18 @@ public class UHttpClient {
 			CloseableHttpResponse execute = httpclient.execute(g);
 			int statusCode = execute.getStatusLine().getStatusCode();
 			execute.close();
+			log.info("test proxy ip "+ip+":"+port+","+statusCode);
 			if(statusCode == 200)
 				return true;
 			else return false;
 		} catch (Exception e) {
+			log.info("test proxy ip "+ip+":"+port,e);
 			return false;
 		}
 	}
 	public static void main(String[] args) {
 		try {
-			boolean testProxyIp = testProxyIp("120.132.71.212",80);
+			boolean testProxyIp = testProxyIp("185.26.169.61",8080);
 			System.out.println(testProxyIp);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

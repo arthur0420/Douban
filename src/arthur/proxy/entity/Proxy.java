@@ -8,6 +8,14 @@ public class Proxy {
 	@Field(fiedlName="ip")
 	String id ;
 	int port;
+	long flash_time;
+	public Proxy(){}
+	public Proxy(String id, int port, long flash_time) {
+		this.id = id;
+		this.port = port;
+		this.flash_time = flash_time;
+	}
+	
 	public String getId() {
 		return id;
 	}
@@ -22,12 +30,7 @@ public class Proxy {
 		return "Proxy [id=" + id + ", port=" + port + ", flash_time="
 				+ flash_time + "]";
 	}
-	public Proxy(String id, int port, long flash_time) {
-		super();
-		this.id = id;
-		this.port = port;
-		this.flash_time = flash_time;
-	}
+	
 	public void setPort(int port) {
 		this.port = port;
 	}
@@ -37,5 +40,5 @@ public class Proxy {
 	public void setFlash_time(long flash_time) {
 		this.flash_time = flash_time;
 	}
-	long flash_time;
+	
 }

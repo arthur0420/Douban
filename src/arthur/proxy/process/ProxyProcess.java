@@ -10,6 +10,12 @@ import org.apache.log4j.Logger;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.proxy.entity.Proxy;
 import arthur.proxy.httpUtils.UHttpClient;
+/**
+ * 
+ * 一个验证 proxy 是不是有效，并进行一系列操作的 线程。
+ * @author ouyangyasi
+ *
+ */
 
 public class ProxyProcess extends ProcessBasic{
 	static Logger log = Logger.getLogger(ProxyProcess.class);
@@ -36,7 +42,7 @@ public class ProxyProcess extends ProcessBasic{
 					l.remove(thread);
 				}
 			}
-			if(l.size()>30){ //　线程池　21个。
+			if(l.size()>30){ //　线程池　31个。
 				try {
 					log.info("thread heap is full , wait....... queue.size:"+q.size());
 					Thread.sleep(5000);

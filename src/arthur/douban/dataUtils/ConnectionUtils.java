@@ -31,7 +31,7 @@ public class ConnectionUtils {
 //    	Topic t = new Topic("123", "测试2", "123", 123321, 123333, "测试法阿斯蒂芬");
 //    	updateEntity(t);
 	}
-    
+
     public static  <T> void  insertEntity(T obj){
     	Connection conn = null;
 		Statement state = null;
@@ -55,7 +55,6 @@ public class ConnectionUtils {
 			String sql = "select * from "+tableName+" where  "+fieldName+" = '"+id+"'";
 			ResultSet re = state.executeQuery(sql);   // 是不是存在
 			if(re.next()){
-				System.out.println("to update");
 				updateEntity(obj);
 				return;
 			}
@@ -99,6 +98,7 @@ public class ConnectionUtils {
 			insertSql1 = insertSql1.substring(0, insertSql1.length()-1);
 			insertSql2 = insertSql2.substring(0, insertSql2.length()-1);
 			String insertSql =  insertSql1 + insertSql2 +")";
+			log.info("excute sql :"+insertSql);
 			int executeUpdate = state.executeUpdate(insertSql);
 			if(executeUpdate !=1){
 				log.error("insert fail");
@@ -135,6 +135,7 @@ public class ConnectionUtils {
 			
 			
 			String sql = "select * from "+tableName+" where  "+fiedlName+" = '"+id+"'";
+			
 			ResultSet re = state.executeQuery(sql);
 			
 			if(re.next()){
@@ -168,6 +169,7 @@ public class ConnectionUtils {
 			Entity annotationEntity = (Entity)itemClazz.getAnnotation(Entity.class);
 			String tableName = annotationEntity.tableName();
 			String sql = "select * from "+tableName+"";
+			log.info("excute sql :"+sql);
 			ResultSet re = state.executeQuery(sql);
 			Field[] fields = itemClazz.getDeclaredFields();
 			while(re.next()){
@@ -189,6 +191,46 @@ public class ConnectionUtils {
 			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
 		return resultList;
+	}
+	 public static <A>  A  getEntitiesCondition(Class<A> itemClazz,String where ,String order){
+		Connection conn = null;
+		Statement state = null;
+		A t = null;
+		try {
+			conn = ConnectionUtils.getConnection();
+			state = conn.createStatement();
+			
+			
+			Entity annotationEntity = (Entity)itemClazz.getAnnotation(Entity.class);
+			String tableName = annotationEntity.tableName();
+			Field field = itemClazz.getDeclaredField("id");
+			arthur.douban.dataUtils.Field annotation = field.getAnnotation(arthur.douban.dataUtils.Field.class);
+			String fiedlName = annotation.fiedlName();
+			
+			
+			String sql = "select * from "+tableName+" where  "+where +" order by "+ order;
+			
+			ResultSet re = state.executeQuery(sql);
+			
+			if(re.next()){
+				t = itemClazz.newInstance();
+				Field[] fields = itemClazz.getDeclaredFields();
+				for(int i = 0 ; i< fields.length ; i++){
+					Field one = fields[i];
+					Object value = oneFiledValueGet(one, re);
+					String name = one.getName();
+					name = name.substring(0,1).toUpperCase()+name.substring(1);
+					Method method = itemClazz.getMethod("set"+name,one.getType());
+					method.invoke(t, value);
+				}
+			}
+		} catch (Exception e) {
+			log.error("",e);
+		}finally{
+			try {if(state!=null){state.close();}} catch (Exception e2) {}
+			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
+		}
+		return t;
 	}
     /**
      * 获得一次查询，一个field的值
@@ -267,12 +309,15 @@ public class ConnectionUtils {
 		    	
 		    	switch (typeName) {
 					case "String":
+						if(value.equals(""))break;
 						updateSql = updateSql +tableFieldName+"='"+value+"',";
 						break; 
 					case "long":
+						if((Long)value == 0)break;
 						updateSql = updateSql +tableFieldName+"="+value+" ,";
 						break;
 					case "int":
+						if((int)value == 0)break;
 						updateSql = updateSql +tableFieldName+"="+value+" ,";
 						break;
 					default:
@@ -281,7 +326,7 @@ public class ConnectionUtils {
 			}
 			updateSql  = updateSql.substring(0,updateSql.length()-1);
 			updateSql = updateSql+" where "+fieldName +" = '"+id+"'";
-//			System.out.println(updateSql);
+			log.info("excute sql :"+updateSql);
 			int executeUpdate = state.executeUpdate(updateSql);
 			if(executeUpdate !=1){
 				log.error("update fail");
@@ -321,7 +366,7 @@ public class ConnectionUtils {
 			String updateSql = "  delete from "+tableName+"   ";
 			updateSql  = updateSql.substring(0,updateSql.length()-1);
 			updateSql = updateSql+" where "+fieldName +" = '"+id+"'";
-//			System.out.println(updateSql);
+			log.info("excute sql :"+updateSql);
 			int executeUpdate = state.executeUpdate(updateSql);
 			if(executeUpdate !=1){
 				log.error("delete fail");
@@ -333,4 +378,7 @@ public class ConnectionUtils {
 			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
     }
+    
+    
+    
 }

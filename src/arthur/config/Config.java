@@ -2,6 +2,7 @@ package arthur.config;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -11,9 +12,10 @@ public class Config {
 	public static boolean init(){
 		try {
 			config = new Properties();
-			config.load(new FileInputStream(new File("config.proteties")));
+			config.load(Config.class.getClassLoader().getResourceAsStream("config.proteties"));
 			return true;
 		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 	}

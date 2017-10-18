@@ -3,6 +3,7 @@ package arthur.proxy.entity;
 import java.net.Proxy;
 
 import arthur.config.Config;
+import arthur.douban.httpUtils.ProxyPool;
 
 public class HttpProxy {
 	long time ;
@@ -56,5 +57,16 @@ public class HttpProxy {
 	}
 	public void close(){
 		valid = true;
+		ProxyPool.setBack(this);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj.getClass().getSimpleName().equals("HttpProxy")){
+			HttpProxy a = (HttpProxy)obj;
+			return ip.equals(a.getIp());
+		}else{
+			return false;
+		}
 	}
 }

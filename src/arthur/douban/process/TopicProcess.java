@@ -12,11 +12,11 @@ public class TopicProcess  extends ProcessBasic{
 		
 	}
 	@Override
-	void parseHtml(String str) {
+	public  void parseHtml(String str) {
 		
 	}
 	@Override
-	void end() {
+	public void end() {
 		// TODO Auto-generated method stub
 	}
 	
