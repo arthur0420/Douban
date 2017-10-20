@@ -22,9 +22,10 @@ public class Topic {
 	String group_name;
 	int flush_reply_num;
 	int last_reply_num;
-	
-	
-	
+	public static void main(String[] args) {
+		String author_id2 = new Topic().getAuthor_id();
+		System.out.println(author_id2);
+	}
 	public Topic(String id, String title, String author_id,
 			long last_reply_time, long publish_time, String content,
 			long flush_time, String group_name, int flush_reply_num,
@@ -123,5 +124,16 @@ public class Topic {
 	public void setLast_reply_num(int last_reply_num) {
 		this.last_reply_num = last_reply_num;
 	}
+
+	@Override
+	public String toString() {
+		return "Topic [id=" + id + ", title=" + title + ", author_id="
+				+ author_id + ", last_reply_time=" + last_reply_time
+				+ ", publish_time=" + publish_time + ", content=" + content
+				+ ", flush_time=" + flush_time + ", group_name=" + group_name
+				+ ", flush_reply_num=" + flush_reply_num + ", last_reply_num="
+				+ last_reply_num + "]";
+	}
+	
 	
 }

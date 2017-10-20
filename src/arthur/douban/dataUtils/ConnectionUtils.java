@@ -3,11 +3,14 @@ package arthur.douban.dataUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -76,9 +79,10 @@ public class ConnectionUtils {
 		    		tableFieldName = classFieldName;
 		    	}
 		    	String typeName = one.getType().getSimpleName();
-		    	insertSql1 = insertSql1+tableFieldName+",";
 		    	switch (typeName) {
 					case "String":
+						if(value == null)break;
+						insertSql1 = insertSql1+tableFieldName+",";
 						String valueStr =  value.toString();
 						if(valueStr.indexOf("'")!=-1){
 							valueStr = valueStr.replaceAll("'", "‘"); 
@@ -86,9 +90,13 @@ public class ConnectionUtils {
 						insertSql2 = insertSql2+" '"+valueStr+"',";
 						break; 
 					case "long":
+						if(value ==null )break;
+						insertSql1 = insertSql1+tableFieldName+",";
 						insertSql2 = insertSql2+""+value+",";
 						break;
 					case "int":
+						if(value == null )break;
+						insertSql1 = insertSql1+tableFieldName+",";
 						insertSql2 = insertSql2+""+value+",";
 						break;
 					default:
@@ -110,7 +118,103 @@ public class ConnectionUtils {
 			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
     }
-    
+    public static  <A> void  batchInsert(List<A> list){
+    	Connection conn = null;
+		try {
+			conn = ConnectionUtils.getConnection();
+			batchInsert(list, conn);
+		} catch (Exception e) {
+			log.error("",e);
+		}finally{
+			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
+		}
+    }
+    public static <A> void batchInsert(List<A> list,Connection conn){
+    	PreparedStatement ps = null;
+		Object obj = list.get(0);
+		Class clazz = obj.getClass();
+		try {
+			Entity annotationEntity = (Entity)clazz.getAnnotation(Entity.class);
+			String tableName = annotationEntity.tableName();
+			Field field = clazz.getDeclaredField("id");
+			arthur.douban.dataUtils.Field anno= field.getAnnotation(arthur.douban.dataUtils.Field.class);
+			String fieldName = "id";
+			if(anno !=null){
+				fieldName =  anno.fiedlName();
+			}
+			String id = "";
+			Method method = clazz.getMethod("getId");
+			id = (String)method.invoke(obj);
+			
+			String insertSql1 = "  insert into "+tableName+" (";
+			String insertSql2 = ") values (";
+			Field[] declaredFields = clazz.getDeclaredFields();
+			
+			ArrayList<Method> methodList = new ArrayList<Method>();
+			ArrayList<String> typeNameList = new ArrayList<String>();
+			for(int i = 0 ; i< declaredFields.length ; i++){  //组织语句
+				Field one = declaredFields[i];
+				
+				
+				String name = one.getName();
+		    	name = name.substring(0,1).toUpperCase()+name.substring(1);
+		    	Method method2 = clazz.getMethod("get"+name);
+				String typeName = one.getType().getSimpleName();
+				methodList.add(method2);
+				typeNameList.add(typeName);
+				
+				arthur.douban.dataUtils.Field annotation = one.getAnnotation(arthur.douban.dataUtils.Field.class);
+		    	String tableFieldName =null;
+		    	String classFieldName =one.getName();
+		    	if(annotation !=null){
+		    		tableFieldName = annotation.fiedlName();
+		    	}else{
+		    		tableFieldName = classFieldName;
+		    	}
+		    	insertSql1 = insertSql1+tableFieldName+",";
+		    	insertSql2 = insertSql2+" ?,";
+			}
+			insertSql1 = insertSql1.substring(0, insertSql1.length()-1);
+			insertSql2 = insertSql2.substring(0, insertSql2.length()-1);
+			String insertSql =  insertSql1 + insertSql2 +")";
+			log.info("excute sql :"+insertSql);
+			ps = conn.prepareStatement(insertSql);
+			for(int i =0 ; i <list.size(); i++){  //遍历数据。
+				A a = list.get(i);
+				for(int j = 0 ; j< methodList.size(); j++){
+			    	Method method2 = methodList.get(j);
+			    	Object value = method2.invoke(a);
+					String typeName = typeNameList.get(j);
+					switch (typeName) {
+						case "String":
+							String valueStr =  value.toString();
+							ps.setString(j+1, valueStr);
+							break; 
+						case "long":
+							ps.setLong(j+1, (Long)value);
+							break;
+						case "int":
+							ps.setInt(j+1, (int)value);
+							break;
+						default:
+							throw new RuntimeException("未能识别的数据类型");
+					}
+				}
+				ps.addBatch();
+			}
+			
+			int[] batch= ps.executeBatch();
+			int  execute= 0;
+			for(int i : batch){
+				execute+=i;
+			}
+			log.info("executeBatch  , listSize:"+list.size() +", success:"+ execute);
+		} catch (Exception e) {
+			log.error("",e);
+		}finally{
+			try {if(ps!=null){ps.close();}} catch (Exception e2) {}
+		}
+    }
     /**
      * 泛型确定要返回的entity类型，  注解标志entity的表名和字段别名
      * 反射执行。
@@ -192,10 +296,10 @@ public class ConnectionUtils {
 		}
 		return resultList;
 	}
-	 public static <A>  A  getEntitiesCondition(Class<A> itemClazz,String where ,String order){
+	 public static <A>  List<A>  getEntitiesCondition(Class<A> itemClazz,String where ,String order){
 		Connection conn = null;
 		Statement state = null;
-		A t = null;
+		List<A> list = new ArrayList<A>();
 		try {
 			conn = ConnectionUtils.getConnection();
 			state = conn.createStatement();
@@ -208,12 +312,12 @@ public class ConnectionUtils {
 			String fiedlName = annotation.fiedlName();
 			
 			
-			String sql = "select * from "+tableName+" where  "+where +" order by "+ order;
-			
+			String sql = "select * from "+tableName+" where  "+where +"  order by  "+ order;
+			log.info(" queryList "+sql);
 			ResultSet re = state.executeQuery(sql);
 			
-			if(re.next()){
-				t = itemClazz.newInstance();
+			while(re.next()){
+				A t = itemClazz.newInstance();
 				Field[] fields = itemClazz.getDeclaredFields();
 				for(int i = 0 ; i< fields.length ; i++){
 					Field one = fields[i];
@@ -223,6 +327,7 @@ public class ConnectionUtils {
 					Method method = itemClazz.getMethod("set"+name,one.getType());
 					method.invoke(t, value);
 				}
+				list.add(t);
 			}
 		} catch (Exception e) {
 			log.error("",e);
@@ -230,7 +335,7 @@ public class ConnectionUtils {
 			try {if(state!=null){state.close();}} catch (Exception e2) {}
 			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
-		return t;
+		return list;
 	}
     /**
      * 获得一次查询，一个field的值
@@ -263,12 +368,23 @@ public class ConnectionUtils {
 				throw new RuntimeException("未能识别的数据类型");
 		}
     }
+    
     public static  <T> void  updateEntity(T obj){
     	Connection conn = null;
+		try {
+			conn = ConnectionUtils.getConnection();
+			updateEntity(obj, conn);
+		} catch (Exception e) {
+			log.error("",e);
+		}finally{
+			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
+		}
+    }
+    //不关闭 链接的处理。
+    public static  <T> void  updateEntity(T obj,Connection conn){
 		Statement state = null;
 		Class clazz = obj.getClass();
 		try {
-			conn = ConnectionUtils.getConnection();
 			state = conn.createStatement();
 			
 			Entity annotationEntity = (Entity)clazz.getAnnotation(Entity.class);
@@ -335,7 +451,6 @@ public class ConnectionUtils {
 			log.error("",e);
 		}finally{
 			try {if(state!=null){state.close();}} catch (Exception e2) {}
-			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
     }
     

@@ -1,10 +1,12 @@
 package arthur.douban.process;
 
 
+
 import org.apache.log4j.Logger;
 
 import arthur.config.Config;
 import arthur.douban.event.GroupEvent;
+import arthur.douban.event.TopicEvent;
 import arthur.douban.httpUtils.UHttpClient;
 
 public class EventProcess extends Thread {
@@ -22,17 +24,29 @@ public class EventProcess extends Thread {
 	@Override
 	public void run() {
 		while(true){
-			GroupEvent oneEvent = GroupProcess.getOneEvent();
-			if(oneEvent !=null){
-				if(!oneEvent.pb.getEventExcuteFlag()){ //后续的不执行。
-					continue;
+			try {
+				GroupEvent oneEvent = GroupProcess.getOneEvent();
+				if(oneEvent !=null){
+					if(!oneEvent.pb.getEventExcuteFlag()){ //后续的不执行。
+						continue;
+					}
+					String excute = excute(oneEvent.url);
+					oneEvent.CallBack(excute);
+				}else{
+					TopicEvent topicEvent = TopicProcess.getOneEvent();
+					if(topicEvent !=null){
+						String excute = excute(topicEvent.url);
+						topicEvent.CallBack(excute);
+					}
+					/*else{
+						new  TopicTimerTask().run();
+					}*/
 				}
-				String excute = excute(oneEvent.url);
-				oneEvent.CallBack(excute);
-			}else{
-				
+			} catch (Exception e) {
+				log.error(e);
 			}
 			try {
+				
 				Thread.sleep(requestInterval);
 			} catch (Exception e) {
 			}

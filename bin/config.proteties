@@ -4,5 +4,3 @@ loadPageNum=15
 ##每次加载页数
 groupScannerInterval=30
 ##组扫码时间间隔    单位分钟。
-topicScannerInterval=60
-##帖子扫码时间间隔    单位分钟。

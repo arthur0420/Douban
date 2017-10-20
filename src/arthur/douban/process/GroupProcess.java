@@ -112,7 +112,7 @@ public class GroupProcess extends ProcessBasic {
 			
 			long parseTime = parseTime(timeText);
 			if(firstTime == 0){
-				System.err.println(new Date(parseTime));
+//				System.err.println(new Date(parseTime));
 				firstTime = parseTime;
 			}
 			if(parseTime < nowBreakpoint){
@@ -125,7 +125,13 @@ public class GroupProcess extends ProcessBasic {
 			String[] split2 = authorUrl.split("/");
 			String author_id = split2[split2.length-1];
 			
-			Topic topic = new Topic(id, titleText, author_id, parseTime, 0, "", 0, group_name, 0, last_reply_num); 
+			Topic topic = new Topic(); //id, titleText, author_id, parseTime, 0, "", 0, group_name, 0, last_reply_num
+			topic.setId(id);
+			topic.setTitle(titleText);
+			topic.setAuthor_id(author_id);
+			topic.setLast_reply_time(parseTime);
+			topic.setGroup_name(group_name);
+			topic.setLast_reply_num(last_reply_num);
 			ConnectionUtils.insertEntity(topic);
 		}
 		/*if(trs.size()<25){

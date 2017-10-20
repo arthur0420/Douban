@@ -18,6 +18,7 @@ import arthur.douban.process.EventProcess;
 import arthur.douban.process.GroupProcess;
 import arthur.douban.task.GroupTimerTask;
 import arthur.douban.task.ProxySsspiderTask;
+import arthur.douban.task.TopicTimerTask;
 import arthur.proxy.process.EnableSannerProcess;
 
 public class Main {
@@ -42,15 +43,17 @@ public class Main {
 		try {
 			String config = Config.getConfig("groupScannerInterval");
 			groupScannerInterval = Integer.parseInt(config);
-		} catch (Exception e) {
-		}
-		Timer proxySanner = new Timer();
-		proxySanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
+		} catch (Exception e) {   
+		}   
+		Timer groupSanner = new Timer();
+		groupSanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
+		
+		Timer topicSanner = new Timer();
+		topicSanner.schedule(new TopicTimerTask(), 3000, 5*60*1000);
 	}
 	public static void init(){
 		// event池处理线程
 		EventProcess eventProcess  = new EventProcess();
 		eventProcess.start();
 	}
-	
 }

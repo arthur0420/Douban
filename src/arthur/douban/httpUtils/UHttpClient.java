@@ -25,6 +25,10 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.apache.sling.commons.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import arthur.proxy.entity.HttpProxy;
 
@@ -102,6 +106,7 @@ public class UHttpClient {
             	entity.writeTo(bao);
             	EntityUtils.consume(entity);
             	returnStr = new String(bao.toByteArray(),"UTF-8");
+            	log.info("请求成功 ，url:"+url);
             }else{
             	log.info("请求失败 code:"+statusCode+",url:"+url);
             	returnStr = "-1";
@@ -129,23 +134,19 @@ public class UHttpClient {
 	
 	public static void main(String[] args) {
 		try {
+		
+			String string = get("https://www.douban.com/group/topic/75334086/?start=0");
+//			log.info(string);
+			Document html = Jsoup.parse(string);
 			
-			for(int i = 0 ; i< 999; i++){
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						String string = get("https://www.douban.com");
-						try {
-							Thread.sleep(10);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}).start();
-			}
-			String string = get("https://www.zhihu.com/question/47464143");
-			log.info(string);
+			Elements elements = html.getElementsByAttributeValue("class", "color-green");
+			Element element = elements.get(0);
+			String timeStr = element.text();
+			System.out.println(timeStr);
+			
+			Element comments = html.getElementById("comments");
+			Elements lis = comments.getElementsByTag("li");
+			System.out.println(lis.size());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
