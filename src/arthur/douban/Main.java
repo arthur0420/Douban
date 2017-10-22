@@ -50,7 +50,7 @@ public class Main {
 			groupSanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
 		}
 		Timer topicSanner = new Timer();
-		topicSanner.schedule(new TopicTimerTask(), 3000, 5*60*1000);
+//		topicSanner.schedule(new TopicTimerTask(), 3000, 5*60*1000);
 	}
 	public static void init(){
 		// event池处理线程

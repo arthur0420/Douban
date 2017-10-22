@@ -46,7 +46,7 @@ public class GroupEvent implements Event {
 		this.firstTime = firstTime;
 		
 		String basicUrl = entity.getUrl();
-		url = basicUrl + "?start="+(index*25);
+		url = basicUrl + "discussion?start="+(index*25);
 		
 		nowBreakpoint = entity.getBreakpoint();
 		
@@ -59,15 +59,19 @@ public class GroupEvent implements Event {
 	@Override
 	public void CallBack(String reponseStr) {
 		if(reponseStr.equals("-1")){  // 请求失败的情况。
-			end();
+			log.info("group over by request_error id:"+entity.getId());
+//			end();
 			return ;
 		}
 		parseHtml(reponseStr);
 		if(index == loadPageNum-1){ // 超过了 配置文件中设定的，一次扫描页数，停止扫描。 index 从0开始。
+			log.info("group over by index == loadPageNum id:"+entity.getId()
+					+" ,index:"+ index+"== loadPageNum:"+loadPageNum);
 			end();
 			return ;
 		}
 		if(nowBreakpoint == -1){
+			log.info("group over by nowBreakpoint == -1 id:"+entity.getId());
 			end();
 			return ;
 		}
@@ -108,6 +112,7 @@ public class GroupEvent implements Event {
 				firstTime = parseTime;
 			}
 			if(parseTime < nowBreakpoint){  // 扫描 间断点 时间戳 超过，停止扫描
+				log.info("parseTime > nowBreakpoint    parseTime:"+parseTime +",nowBreakpoint"+ nowBreakpoint+", id:"+entity.getId());
 				nowBreakpoint = -1;
 				break;
 			}
@@ -126,6 +131,7 @@ public class GroupEvent implements Event {
 			ConnectionUtils.insertEntity(topic);
 		}
 		if(size <25){ // 最后一页，停止扫描。
+			log.info("size<25    id:"+entity.getId());
 			nowBreakpoint = -1;
 		}
 	}
