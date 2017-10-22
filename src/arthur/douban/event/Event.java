@@ -1,5 +1,7 @@
 package arthur.douban.event;
 
-public interface Event {
+import java.io.Serializable;
+
+public interface Event extends Serializable{
 	public void CallBack(String reponseStr)throws Exception;
 }

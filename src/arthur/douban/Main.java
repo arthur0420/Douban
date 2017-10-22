@@ -45,9 +45,10 @@ public class Main {
 			groupScannerInterval = Integer.parseInt(config);
 		} catch (Exception e) {   
 		}   
-		Timer groupSanner = new Timer();
-		groupSanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
-		
+		if(groupScannerInterval!=0){
+			Timer groupSanner = new Timer();
+			groupSanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
+		}
 		Timer topicSanner = new Timer();
 		topicSanner.schedule(new TopicTimerTask(), 3000, 5*60*1000);
 	}

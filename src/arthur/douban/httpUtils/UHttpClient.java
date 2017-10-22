@@ -135,18 +135,13 @@ public class UHttpClient {
 	public static void main(String[] args) {
 		try {
 		
-			String string = get("https://www.douban.com/group/topic/75334086/?start=0");
-//			log.info(string);
+			String string = get("https://www.douban.com/group/topic/108656746/");
+			log.info(string);
 			Document html = Jsoup.parse(string);
-			
-			Elements elements = html.getElementsByAttributeValue("class", "color-green");
-			Element element = elements.get(0);
-			String timeStr = element.text();
-			System.out.println(timeStr);
 			
 			Element comments = html.getElementById("comments");
 			Elements lis = comments.getElementsByTag("li");
-			System.out.println(lis.size());
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

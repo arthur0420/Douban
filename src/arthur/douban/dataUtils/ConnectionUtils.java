@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import arthur.douban.entity.Group;
 import arthur.douban.entity.Topic;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -31,8 +32,8 @@ public class ConnectionUtils {
         return conn;
     }
     public static void main(String[] args) throws SQLException {
-//    	Topic t = new Topic("123", "测试2", "123", 123321, 123333, "测试法阿斯蒂芬");
-//    	updateEntity(t);
+    	Group t = new Group("3","😳", "123", 123l);
+    	insertEntity(t);
 	}
 
     public static  <T> void  insertEntity(T obj){

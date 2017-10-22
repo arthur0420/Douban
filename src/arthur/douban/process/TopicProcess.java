@@ -1,35 +1,15 @@
 package arthur.douban.process;
 
-import java.sql.Connection;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Entities;
-import org.jsoup.select.Elements;
 
-import arthur.douban.dataUtils.ConnectionUtils;
-import arthur.douban.entity.Comment;
-import arthur.douban.entity.Topic;
 import arthur.douban.event.TopicEvent;
 
 
-public class TopicProcess  extends ProcessBasic{
+public class TopicProcess  {
 	static Logger log = Logger.getLogger(TopicProcess.class);
 	static LinkedBlockingQueue<TopicEvent> queue = new LinkedBlockingQueue<TopicEvent>();
-	Topic entity = null;
-	
-	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	public TopicProcess(Topic t){
-		entity = t;
-	}
 	public static TopicEvent getOneEvent(){
 		TopicEvent poll = queue.poll();
 		return poll;
@@ -43,14 +23,25 @@ public class TopicProcess  extends ProcessBasic{
 	public static void clearEvent(){
 		queue.clear();
 	}
+	public static void replaceQueue( LinkedBlockingQueue<TopicEvent> q){
+		queue = q;
+	}
+	
+	
+	/*
+	Topic entity = null;
+	
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	public TopicProcess(Topic t){
+		entity = t;
+	}
+	
 	@Override
 	public void run() {
 		int last_reply_num = entity.getLast_reply_num();
 		int flush_reply_num = entity.getFlush_reply_num();
 		int startPage = flush_reply_num/100;  
 		int endPage = last_reply_num/100;
-		TopicEvent topicEvent = new TopicEvent(entity.getId(), this,startPage,endPage);
-		queue.add(topicEvent);
 	}
 	
 	@Override
@@ -131,5 +122,7 @@ public class TopicProcess  extends ProcessBasic{
 	}
 	@Override
 	public void end() {
-	}
+		entity.setFlush_reply_num(Integer.MAX_VALUE);
+		ConnectionUtils.updateEntity(entity);
+	}*/
 }

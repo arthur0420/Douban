@@ -20,33 +20,26 @@ public class EventProcess extends Thread {
 			e.printStackTrace();
 		}
 	}
-	
 	@Override
 	public void run() {
 		while(true){
 			try {
 				GroupEvent oneEvent = GroupProcess.getOneEvent();
 				if(oneEvent !=null){
-					if(!oneEvent.pb.getEventExcuteFlag()){ //后续的不执行。
-						continue;
-					}
-					String excute = excute(oneEvent.url);
+					String excute = excute(oneEvent.getUrl());
 					oneEvent.CallBack(excute);
 				}else{
 					TopicEvent topicEvent = TopicProcess.getOneEvent();
 					if(topicEvent !=null){
-						String excute = excute(topicEvent.url);
+						String excute = excute(topicEvent.getUrl());
 						topicEvent.CallBack(excute);
 					}
-					/*else{
-						new  TopicTimerTask().run();
-					}*/
 				}
 			} catch (Exception e) {
+				e.printStackTrace();
 				log.error(e);
 			}
 			try {
-				
 				Thread.sleep(requestInterval);
 			} catch (Exception e) {
 			}
@@ -64,7 +57,7 @@ public class EventProcess extends Thread {
 				}else{
 					tryAgainTime++;
 					try {
-						Thread.sleep(3*tryAgainTime* 1000);
+						Thread.sleep(tryAgainTime* 1000);
 					} catch (Exception e) {
 					}
 					continue;

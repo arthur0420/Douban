@@ -6,9 +6,8 @@ import java.util.TimerTask;
 import org.apache.log4j.Logger;
 
 import arthur.douban.dataUtils.ConnectionUtils;
-import arthur.douban.entity.Group;
 import arthur.douban.entity.Topic;
-import arthur.douban.process.GroupProcess;
+import arthur.douban.event.TopicEvent;
 import arthur.douban.process.TopicProcess;
 
 public class TopicTimerTask extends TimerTask{
@@ -16,16 +15,14 @@ public class TopicTimerTask extends TimerTask{
 	@Override
 	public void run() {
 		int queueSize = TopicProcess.getQueueSize();
-		   
 		if(queueSize>0){
-			log.info("topic event queue is not empty，siez:"+queueSize);
+			log.info("topic event queue is not empty，size:"+queueSize);
 			return ;
 		}
-		List<Topic> entities = ConnectionUtils.getEntitiesCondition(Topic.class, " last_reply_num >flush_reply_num", " last_reply_num - flush_reply_num desc");
+		List<Topic> entities = ConnectionUtils.getEntitiesCondition(Topic.class, " last_reply_num >flush_reply_num and last_reply_time>flush_time ", " last_reply_num - flush_reply_num desc");
 		for(int i = 0 ; i< entities.size() ;i++){
 			Topic t = entities.get(i);
-			TopicProcess tp = new TopicProcess(t);
-			tp.start();
+			TopicProcess.addOneEvent(new TopicEvent(t));
 		}
 	}
 	public static void main(String[] args) {
