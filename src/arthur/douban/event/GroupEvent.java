@@ -1,5 +1,10 @@
 package arthur.douban.event;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -14,7 +19,7 @@ import arthur.config.Config;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Group;
 import arthur.douban.entity.Topic;
-import arthur.douban.process.GroupProcess;
+import arthur.douban.queue.GroupQueue;
 
 public class GroupEvent implements Event {
 	/**
@@ -37,7 +42,6 @@ public class GroupEvent implements Event {
 	long nowBreakpoint = 0;
 	long firstTime = 0; // 第一页的 第一个帖子的，最新回复时间 ，将成为下一个   断点。
 	int year = 0;
-	
 	
 	public GroupEvent(int index ,Group group,long firstTime) {
 		
@@ -75,7 +79,7 @@ public class GroupEvent implements Event {
 			end();
 			return ;
 		}
-		GroupProcess.addOneEvent(new GroupEvent(index, entity, firstTime));
+		GroupQueue.addOneEvent(new GroupEvent(index, entity, firstTime));
 	}
 	// 解析一页
 	public void parseHtml(String str) {

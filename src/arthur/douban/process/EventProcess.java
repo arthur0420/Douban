@@ -8,6 +8,8 @@ import arthur.config.Config;
 import arthur.douban.event.GroupEvent;
 import arthur.douban.event.TopicEvent;
 import arthur.douban.httpUtils.UHttpClient;
+import arthur.douban.queue.GroupQueue;
+import arthur.douban.queue.TopicQueue;
 
 public class EventProcess extends Thread {
 	static Logger log = Logger.getLogger(EventProcess.class);
@@ -24,12 +26,12 @@ public class EventProcess extends Thread {
 	public void run() {
 		while(true){
 			try {
-				GroupEvent oneEvent = GroupProcess.getOneEvent();
+				GroupEvent oneEvent = GroupQueue.getOneEvent();
 				if(oneEvent !=null){
 					String excute = excute(oneEvent.getUrl());
 					oneEvent.CallBack(excute);
 				}else{
-					TopicEvent topicEvent = TopicProcess.getOneEvent();
+					TopicEvent topicEvent = TopicQueue.getOneEvent();
 					if(topicEvent !=null){
 						String excute = excute(topicEvent.getUrl());
 						topicEvent.CallBack(excute);

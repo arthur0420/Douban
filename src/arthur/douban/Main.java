@@ -2,24 +2,15 @@ package arthur.douban;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.util.List;
+import java.security.Signer;
 import java.util.Properties;
 import java.util.Timer;
 
-import org.apache.commons.lang.Validate;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.xml.DOMConfigurator;
 
 import arthur.config.Config;
-import arthur.douban.dataUtils.ConnectionUtils;
-import arthur.douban.entity.Group;
 import arthur.douban.process.EventProcess;
-import arthur.douban.process.GroupProcess;
 import arthur.douban.task.GroupTimerTask;
-import arthur.douban.task.ProxySsspiderTask;
-import arthur.douban.task.TopicTimerTask;
-import arthur.proxy.process.EnableSannerProcess;
 
 public class Main {
 	
@@ -33,12 +24,9 @@ public class Main {
 		
 		startScan();
 		init();
+		registerSinal();
 	}
 	public static void startScan(){
-	/*	Timer proxySanner = new Timer();
-		proxySanner.schedule(new ProxySsspiderTask(),2*60*1000, 10*60*1000);
-		Timer validateProxyEnableTimer = new Timer();
-		validateProxyEnableTimer.schedule(new EnableSannerProcess(), 6 * 60 * 1000, 10*60*1000);*/
 		int groupScannerInterval = 30;
 		try {
 			String config = Config.getConfig("groupScannerInterval");
@@ -56,5 +44,15 @@ public class Main {
 		// event池处理线程
 		EventProcess eventProcess  = new EventProcess();
 		eventProcess.start();
+	}
+	public static void registerSinal(){
+		Runtime.getRuntime().addShutdownHook(new Thread() { 
+            public void run() { 
+            	Main.releaseResource();
+            }
+		});
+	}
+	public static void releaseResource(){
+		//TODO 释放资源。
 	}
 }

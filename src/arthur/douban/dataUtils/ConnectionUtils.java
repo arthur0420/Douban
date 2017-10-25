@@ -12,8 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.client.fluent.Content;
 import org.apache.log4j.Logger;
 
+import arthur.douban.entity.Comment;
 import arthur.douban.entity.Group;
 import arthur.douban.entity.Topic;
 
@@ -32,8 +34,6 @@ public class ConnectionUtils {
         return conn;
     }
     public static void main(String[] args) throws SQLException {
-    	Group t = new Group("3","😳", "123", 123l);
-    	insertEntity(t);
 	}
 
     public static  <T> void  insertEntity(T obj){

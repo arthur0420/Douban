@@ -8,14 +8,13 @@ import org.apache.log4j.Logger;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Group;
 import arthur.douban.event.GroupEvent;
-import arthur.douban.process.GroupProcess;
-import arthur.douban.process.TopicProcess;
+import arthur.douban.queue.GroupQueue;
 
 public class GroupTimerTask extends TimerTask{
 	static Logger log = Logger.getLogger(GroupTimerTask.class);
 	@Override
 	public void run() {
-		int queueSize = GroupProcess.getQueueSize();
+		int queueSize = GroupQueue.getQueueSize();
 		if(queueSize>0){
 			log.info("group event queue is not empty，size:"+queueSize);
 			return ;
@@ -23,7 +22,7 @@ public class GroupTimerTask extends TimerTask{
 		List<Group> entities = ConnectionUtils.getEntities(Group.class);
 		for(int i = 0 ; i< entities.size() ;i++){
 			Group g = entities.get(i);
-			GroupProcess.addOneEvent(new GroupEvent(0, g, 0));
+			GroupQueue.addOneEvent(new GroupEvent(0, g, 0));
 		}
 	}
 }

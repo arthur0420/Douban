@@ -1,4 +1,4 @@
-package arthur.douban.process;
+package arthur.douban.queue;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -7,8 +7,8 @@ import org.apache.log4j.Logger;
 import arthur.douban.event.TopicEvent;
 
 
-public class TopicProcess  {
-	static Logger log = Logger.getLogger(TopicProcess.class);
+public class TopicQueue  {
+	static Logger log = Logger.getLogger(TopicQueue.class);
 	static LinkedBlockingQueue<TopicEvent> queue = new LinkedBlockingQueue<TopicEvent>();
 	public static TopicEvent getOneEvent(){
 		TopicEvent poll = queue.poll();

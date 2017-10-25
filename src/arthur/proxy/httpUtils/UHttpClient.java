@@ -36,6 +36,7 @@ public class UHttpClient {
 		phcm.setMaxTotal(200);
 		phcm.setDefaultMaxPerRoute(20);
 		httpclient = HttpClients.custom().setConnectionManager(phcm).build();
+		
 	}
 	public static  String get(String url){
 		String returnStr ;

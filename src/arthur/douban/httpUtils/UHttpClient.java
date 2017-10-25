@@ -4,13 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -20,11 +18,16 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.params.HttpParamConfig;
+import org.apache.http.params.HttpParamsNames;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.apache.sling.commons.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -35,60 +38,34 @@ import arthur.proxy.entity.HttpProxy;
 
 public class UHttpClient {	
 	private static final Logger log = Logger.getLogger(UHttpClient.class);
-	private static  BasicCookieStore cookieStore = new BasicCookieStore();
-	private static PoolingHttpClientConnectionManager phcm = new PoolingHttpClientConnectionManager();
-	
-	private static  CloseableHttpClient httpclient = null;
-	static{
-		// TODO　 配置化。
+	private static BasicCookieStore cookieStore ;
+	private static PoolingHttpClientConnectionManager phcm ;
+	private static CloseableHttpClient httpclient ;
+	private static DefaultConnectionKeepAliveStrategy myStrategy ;
+	private static RequestConfig rc ;
+	public static void init(){
+		
+		rc = RequestConfig.custom().setConnectionRequestTimeout(5000).setSocketTimeout(5000).setConnectTimeout(5000).build();
+		myStrategy =  new DefaultConnectionKeepAliveStrategy(){
+			@Override
+			public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
+				long keepAlive = super.getKeepAliveDuration(response, context);
+				if(keepAlive !=-1){
+					return keepAlive;
+				}
+				return 10* 1000;
+			}
+		};
+		cookieStore = new BasicCookieStore();
+		phcm = new PoolingHttpClientConnectionManager();
 		phcm.setMaxTotal(200);
 		phcm.setDefaultMaxPerRoute(20);
-		httpclient = HttpClients.custom().setConnectionManager(phcm).setDefaultCookieStore(cookieStore).build();
-	}
-	public static  String  getByProxy(String url){
-		String returnStr =null;
-		CloseableHttpResponse response = null ;
-		HttpProxy proxy = null;
-        try {
-            HttpGet httpGet = new HttpGet(url);
-            proxy = ProxyPool.getProxy();
-            if(!proxy.getIp().equals("127.0.0.1")){
-            	HttpHost hh = new HttpHost(proxy.getIp(), proxy.getPort());
-                RequestConfig rc = RequestConfig.custom().setProxy(hh).build();
-                httpGet.setConfig(rc);
-            }
-            response  = httpclient.execute(httpGet);
-            StatusLine httpStatus = response.getStatusLine();
-            int statusCode = httpStatus.getStatusCode();
-            if( statusCode== 200){
-            	HttpEntity entity = response.getEntity();
-            	ByteArrayOutputStream bao = new ByteArrayOutputStream();
-            	entity.writeTo(bao);
-            	EntityUtils.consume(entity);
-            	returnStr = new String(bao.toByteArray(),"UTF-8");
-            }else{
-            	log.info("请求失败 code:"+statusCode+",url:"+url);
-            	returnStr = "-1";
-            }
-        }catch(Exception e){
-        	log.error(e);
-        	returnStr = "-1";
-        }finally{
-        	if(proxy!=null){
-        		if(returnStr!=null && returnStr.equals("-1")){
-        			ProxyPool.removeProxy(proxy);
-        		}else{
-        			proxy.close();
-        		}
-        	}
-        	if(response!=null){
-        		try {
-					response.close();
-				} catch (IOException e) {
-				}
-        	}
-        }
-        return returnStr;
+		
+		 HttpClientBuilder custom = HttpClients.custom();
+				/*.setConnectionManager(phcm). // 连接池
+				setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)). // 重试 handler
+				setKeepAliveStrategy(myStrategy). // 长连接 策略
+				setDefaultCookieStore(cookieStore).build(); // cookiestore*/
 	}
 	public static  String  get(String url){
 		String returnStr =null;
@@ -96,7 +73,6 @@ public class UHttpClient {
 		HttpProxy proxy = null;
         try {
             HttpGet httpGet = new HttpGet(url);
-            
             response  = httpclient.execute(httpGet);
             StatusLine httpStatus = response.getStatusLine();
             int statusCode = httpStatus.getStatusCode();

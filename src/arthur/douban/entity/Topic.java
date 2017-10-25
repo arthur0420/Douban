@@ -2,6 +2,8 @@ package arthur.douban.entity;
 
 
 
+import java.io.Serializable;
+
 import arthur.douban.dataUtils.Entity;
 import arthur.douban.dataUtils.Field;
 
@@ -10,7 +12,11 @@ import arthur.douban.dataUtils.Field;
  *
  */
 @Entity(tableName="topic")
-public class Topic {
+public class Topic implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	@Field(fiedlName="topic_id")
 	String id;
 	String title ;

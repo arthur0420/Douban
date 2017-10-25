@@ -1,9 +1,15 @@
 package arthur.douban.entity;
 
+import java.io.Serializable;
+
 import arthur.douban.dataUtils.Entity;
 
 @Entity(tableName="`group`")
-public class Group {
+public class Group  implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	String id ;
 	String name ; // 名字
 	String url ; // 

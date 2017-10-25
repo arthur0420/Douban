@@ -1,4 +1,4 @@
-package arthur.douban.process;
+package arthur.douban.queue;
 
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -7,8 +7,8 @@ import org.apache.log4j.Logger;
 
 import arthur.douban.event.GroupEvent;
 
-public class GroupProcess  {
-	static Logger log = Logger.getLogger(GroupProcess.class);
+public class GroupQueue  {
+	static Logger log = Logger.getLogger(GroupQueue.class);
 	static LinkedBlockingQueue<GroupEvent> queue = new LinkedBlockingQueue<GroupEvent>();
 	
 	public static int getQueueSize(){
