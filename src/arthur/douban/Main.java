@@ -9,11 +9,14 @@ import java.util.Timer;
 import org.apache.log4j.PropertyConfigurator;
 
 import arthur.config.Config;
+import arthur.douban.httpUtils.UHttpClient;
 import arthur.douban.process.EventProcess;
+import arthur.douban.queue.mq.Consumer;
+import arthur.douban.queue.mq.ServerHold;
 import arthur.douban.task.GroupTimerTask;
+import arthur.douban.task.TopicTimerTask;
 
 public class Main {
-	
 	public static void main(String[] args) throws IOException {
 		InputStream resourceAsStream = Main.class.getClassLoader().getResourceAsStream("log4j.properties");
 		Properties pp = new Properties();
@@ -22,28 +25,40 @@ public class Main {
 		String path = Main.class.getClassLoader().getResource("c3p0-config.xml").getPath();
 		System.setProperty("com.mchange.v2.c3p0.cfg.xml",path);
 		
-		startScan();
-		init();
+		try {
+			String s = Config.getConfig("server");
+			String c = Config.getConfig("client");
+			if(s.equals("true")){
+				server(); // server
+			}
+			if(c.equals("true")){
+				client(); // client
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+		}
 		registerSinal();
 	}
-	public static void startScan(){
+	public static void server() throws Exception{ // server 端
 		int groupScannerInterval = 30;
-		try {
-			String config = Config.getConfig("groupScannerInterval");
-			groupScannerInterval = Integer.parseInt(config);
-		} catch (Exception e) {   
-		}   
+		String config = Config.getConfig("groupScannerInterval");
+		groupScannerInterval = Integer.parseInt(config);
 		if(groupScannerInterval!=0){
 			Timer groupSanner = new Timer();
 			groupSanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
 		}
 		Timer topicSanner = new Timer();
-//		topicSanner.schedule(new TopicTimerTask(), 3000, 5*60*1000);
+		topicSanner.schedule(new TopicTimerTask(), 3000, 30*1000);
+		
+		ServerHold.init();
 	}
-	public static void init(){
+	public static void client() throws Exception{ // 服务端
+		UHttpClient.init();
 		// event池处理线程
 		EventProcess eventProcess  = new EventProcess();
 		eventProcess.start();
+		Consumer.init();
 	}
 	public static void registerSinal(){
 		Runtime.getRuntime().addShutdownHook(new Thread() { 
@@ -53,6 +68,13 @@ public class Main {
 		});
 	}
 	public static void releaseResource(){
-		//TODO 释放资源。
+		try {
+			Thread.sleep(1000);
+		} catch (Exception e) {
+		}
+		System.out.println("!!!!!!!!!!!!!!!");
+		System.out.println("!!!!!!!!!!!!!!!");
+		System.out.println("!!!!!!!!!!!!!!!");
+		System.out.println("释放资源，关闭");
 	}
 }

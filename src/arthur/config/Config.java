@@ -1,9 +1,5 @@
 package arthur.config;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.Properties;
 
 public class Config {

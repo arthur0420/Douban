@@ -10,6 +10,7 @@ import arthur.douban.event.TopicEvent;
 import arthur.douban.httpUtils.UHttpClient;
 import arthur.douban.queue.GroupQueue;
 import arthur.douban.queue.TopicQueue;
+import arthur.douban.queue.mq.Consumer;
 
 public class EventProcess extends Thread {
 	static Logger log = Logger.getLogger(EventProcess.class);
@@ -35,6 +36,10 @@ public class EventProcess extends Thread {
 					if(topicEvent !=null){
 						String excute = excute(topicEvent.getUrl());
 						topicEvent.CallBack(excute);
+					}else{
+						boolean message = Consumer.getMessage();
+						if(message)
+							continue;
 					}
 				}
 			} catch (Exception e) {

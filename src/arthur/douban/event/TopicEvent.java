@@ -17,6 +17,7 @@ import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Comment;
 import arthur.douban.entity.Topic;
 import arthur.douban.queue.TopicQueue;
+import arthur.douban.queue.mq.Consumer;
 
 public class TopicEvent implements Event {
 	
@@ -64,7 +65,8 @@ public class TopicEvent implements Event {
 		if(start != end){  // 每次加载一页， 一页加载完成之后，   start +1，把自己添加到  队列里待执行。
 			int flush_reply_num = entity.getFlush_reply_num();
 			entity.setFlush_reply_num(flush_reply_num+100); // 下一页
-			TopicQueue.addOneEvent(new TopicEvent(entity));
+//			TopicQueue.addOneEvent();
+			Consumer.setMessage(new TopicEvent(entity));
 		}
 	}
 	public  void parseHtml(String str) throws Exception {

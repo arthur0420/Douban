@@ -10,7 +10,7 @@ import arthur.douban.event.GroupEvent;
 
 public class DataFormat {
 	public static   byte[] getByteArray(Object t)throws Exception{
-		 ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream out = new ObjectOutputStream(baos);
         out.writeObject(t);
         out.close();

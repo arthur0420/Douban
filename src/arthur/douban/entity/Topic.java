@@ -16,7 +16,9 @@ public class Topic implements Serializable{
 	/**
 	 * 
 	 */
+	@Field(ignore=true)
 	private static final long serialVersionUID = 1L;
+	
 	@Field(fiedlName="topic_id")
 	String id;
 	String title ;

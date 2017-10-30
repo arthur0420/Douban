@@ -3,43 +3,120 @@ package arthur.douban.queue.mq;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
+
+import javax.lang.model.util.SimpleAnnotationValueVisitor6;
 
 import org.apache.log4j.Logger;
 
-public class Consumer {
+import arthur.config.Config;
+import arthur.douban.event.GroupEvent;
+import arthur.douban.event.TopicEvent;
+import arthur.douban.queue.GroupQueue;
+import arthur.douban.queue.TopicQueue;
+
+public class Consumer  extends Thread{
 	private static Logger log = Logger.getLogger(Consumer.class);
-	public static void init()  {
-		
-	}
-	public static void end(){
-		
-	}
-	public static void getMessage(String topic ) throws Exception{
-		
-	}
-	public static void main(String[] args) throws Exception {
-		
-        Socket client = new Socket("127.0.0.1", 20006);  
+	private static BufferedOutputStream bos = null;
+	private static BufferedInputStream bis = null; 
+	private static Socket client = null;
+	private static boolean runFlag = true;
+	private static long heartBeat = 0l;
+	public synchronized static void init() throws Exception  {
+		String ip =  Config.getConfig("ip");
+		int port = Integer.parseInt(Config.getConfig("port")) ;
+		client = new Socket(ip, port);  
         client.setSoTimeout(10000); // 读取超时  
-        BufferedOutputStream bos = new BufferedOutputStream(client.getOutputStream());
-        BufferedInputStream bis = new BufferedInputStream(client.getInputStream());  
-        boolean flag = true;  
-        try{ 
-        /*	byte[] buff = new byte[1024];
-        	int read = bis.read(buff);
-        	System.out.println(new String(buff));*/
-            bos.write(("中").getBytes());
-            bos.flush();
-        }catch(SocketTimeoutException e){  
-            System.out.println("Time out, No response");  
-        }  
-        if(client != null){  
-            //如果构造函数建立起了连接，则关闭套接字，如果没有建立起连接，自然不用关闭  
-            client.close(); //只关闭socket，其关联的输入输出流也会被关闭  
-        }
+        
+        bos= new BufferedOutputStream(client.getOutputStream());
+        bis= new BufferedInputStream(client.getInputStream());
+        heartBeat = System.currentTimeMillis();
+        new Consumer().start();
+	}
+	public synchronized  static void end() throws Exception{
+		if(client !=null)
+			client.close();
+		runFlag = false;
+	}
+	public synchronized static boolean getMessage() throws Exception{
+		heartBeat = System.currentTimeMillis();
+		bos.write("getE".getBytes());
+		bos.flush();
+		int available =bis.available();
+    	while(true){
+    		if(available >0){
+    			break;
+    		}else{
+    			Thread.sleep(100);
+    		}
+    		available = bis.available();
+    	}
+    	byte[] buff = new byte[available];
+    	int read = bis.read(buff);
+    	if(read == 5){
+    		log.error("错误:"+new String(buff));
+    		return false;
+    	}
+    	Object objectByByteArray = DataFormat.getObjectByByteArray(buff);
+    	String simpleName = objectByByteArray.getClass().getSimpleName();
+    	if(simpleName.equals("TopicEvent")){
+    		TopicQueue.addOneEvent((TopicEvent)objectByByteArray);
+    	}else{
+    		GroupQueue.addOneEvent((GroupEvent)objectByByteArray);
+    	}
+    	return true;
+    	
+    	
+    	 
+	}
+	public synchronized  static void setMessage(GroupEvent e) throws Exception{
+		bos.write("setG".getBytes());
+		bos.flush();
+		byte[] byteArray = DataFormat.getByteArray(e);
+		bos.write(byteArray);
+		bos.flush();
+		
+		
+		heartBeat = System.currentTimeMillis();
+	}
+	public  synchronized static void setMessage(TopicEvent e) throws Exception{
+		bos.write("setT".getBytes());
+		bos.flush();
+		byte[] byteArray = DataFormat.getByteArray(e);
+		bos.write(byteArray);
+		bos.flush();
+		
+		heartBeat = System.currentTimeMillis();
+	}
+	public synchronized static void heartBeat() throws IOException{
+		bos.write("setH".getBytes());
+		bos.flush();
+		heartBeat = System.currentTimeMillis();
+	}
+	@Override
+	public void run() {
+		while(runFlag){
+			try {
+				long h =  System.currentTimeMillis() -  heartBeat;
+				if(h > 5 * 60 *1000){
+					Consumer.heartBeat();
+				}
+				Thread.sleep(5 * 60* 1000);
+			} catch (Exception e) {
+				log.error("发送心跳异常，重建连接",e);
+				try {
+					Consumer.init();
+					break;
+				} catch (Exception e1) {
+					log.error("初始化异常，退出",e);
+					System.exit(0);
+				}
+			}
+		}
 	}
 }

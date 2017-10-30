@@ -10,7 +10,6 @@
 	<classpathentry kind="lib" path="lib/jsoup-1.10.3.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.16.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.44-bin.jar"/>
-	<classpathentry kind="lib" path="lib/openmessaging-api-0.1.0-alpha.jar"/>
 	<classpathentry kind="lib" path="lib/org.apache.httpcomponents.httpclient_4.5.3.jar"/>
 	<classpathentry kind="lib" path="lib/org.apache.sling.commons.json-2.0.6.jar"/>
 	<classpathentry kind="output" path="bin"/>

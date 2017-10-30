@@ -68,6 +68,10 @@ public class ConnectionUtils {
 			for(int i = 0 ; i< declaredFields.length ; i++){
 				Field one = declaredFields[i];
 				arthur.douban.dataUtils.Field annotation = one.getAnnotation(arthur.douban.dataUtils.Field.class);
+				if(annotation!=null){
+					boolean ignore = annotation.ignore();
+					if(ignore)continue;
+				}
 		    	String tableFieldName =null;
 		    	String classFieldName =one.getName();
 		    	String name = one.getName();
@@ -155,7 +159,11 @@ public class ConnectionUtils {
 			ArrayList<String> typeNameList = new ArrayList<String>();
 			for(int i = 0 ; i< declaredFields.length ; i++){  //组织语句
 				Field one = declaredFields[i];
-				
+				arthur.douban.dataUtils.Field annotation = one.getAnnotation(arthur.douban.dataUtils.Field.class);
+				if(annotation!=null){
+					boolean ignore = annotation.ignore();
+					if(ignore)continue;
+				}
 				
 				String name = one.getName();
 		    	name = name.substring(0,1).toUpperCase()+name.substring(1);
@@ -164,7 +172,9 @@ public class ConnectionUtils {
 				methodList.add(method2);
 				typeNameList.add(typeName);
 				
-				arthur.douban.dataUtils.Field annotation = one.getAnnotation(arthur.douban.dataUtils.Field.class);
+				
+				
+				
 		    	String tableFieldName =null;
 		    	String classFieldName =one.getName();
 		    	if(annotation !=null){
@@ -248,6 +258,11 @@ public class ConnectionUtils {
 				Field[] fields = itemClazz.getDeclaredFields();
 				for(int i = 0 ; i< fields.length ; i++){
 					Field one = fields[i];
+					arthur.douban.dataUtils.Field annF = one.getAnnotation(arthur.douban.dataUtils.Field.class);
+					if(annF!=null){
+						boolean ignore = annF.ignore();
+						if(ignore)continue;
+					}
 					Object value = oneFiledValueGet(one, re);
 					String name = one.getName();
 					name = name.substring(0,1).toUpperCase()+name.substring(1);
@@ -281,6 +296,11 @@ public class ConnectionUtils {
 				t = itemClazz.newInstance();
 				for(int i = 0 ; i< fields.length ; i++){
 					Field one = fields[i];
+					arthur.douban.dataUtils.Field annotation = one.getAnnotation(arthur.douban.dataUtils.Field.class);
+					if(annotation!=null){
+						boolean ignore = annotation.ignore();
+						if(ignore)continue;
+					}
 					Object value = oneFiledValueGet(one, re);
 					String name = one.getName();
 					name = name.substring(0,1).toUpperCase()+name.substring(1);
@@ -322,6 +342,11 @@ public class ConnectionUtils {
 				Field[] fields = itemClazz.getDeclaredFields();
 				for(int i = 0 ; i< fields.length ; i++){
 					Field one = fields[i];
+					arthur.douban.dataUtils.Field annotation1 = one.getAnnotation(arthur.douban.dataUtils.Field.class);
+					if(annotation1!=null){
+						boolean ignore = annotation1.ignore();
+						if(ignore)continue;
+					}
 					Object value = oneFiledValueGet(one, re);
 					String name = one.getName();
 					name = name.substring(0,1).toUpperCase()+name.substring(1);
@@ -409,6 +434,10 @@ public class ConnectionUtils {
 			for(int i = 0 ; i< declaredFields.length ; i++){
 				Field one = declaredFields[i];
 				arthur.douban.dataUtils.Field annotation = one.getAnnotation(arthur.douban.dataUtils.Field.class);
+				if(annotation!=null){
+					boolean ignore = annotation.ignore();
+					if(ignore)continue;
+				}
 		    	String tableFieldName =null;
 		    	String classFieldName =one.getName();
 		    	String name = one.getName();
@@ -454,8 +483,6 @@ public class ConnectionUtils {
 			try {if(state!=null){state.close();}} catch (Exception e2) {}
 		}
     }
-    
-    
     public static  <T> void  deleteEntity(T obj){
     	Connection conn = null;
 		Statement state = null;

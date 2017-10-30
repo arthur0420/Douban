@@ -61,8 +61,9 @@ public class UHttpClient {
 		phcm.setMaxTotal(200);
 		phcm.setDefaultMaxPerRoute(20);
 		
-		 HttpClientBuilder custom = HttpClients.custom();
-				/*.setConnectionManager(phcm). // 连接池
+		HttpClientBuilder custom = HttpClients.custom();
+		httpclient = custom
+				.setConnectionManager(phcm). // 连接池
 				setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)). // 重试 handler
 				setKeepAliveStrategy(myStrategy). // 长连接 策略
 				setDefaultCookieStore(cookieStore).build(); // cookiestore*/
@@ -117,7 +118,7 @@ public class UHttpClient {
 			
 			Element comments = html.getElementById("comments");
 			Elements lis = comments.getElementsByTag("li");
-			
+			System.out.println(lis.size());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -175,6 +176,5 @@ public class UHttpClient {
 	        } finally {
 	        }
 		}
-	
 	
 }

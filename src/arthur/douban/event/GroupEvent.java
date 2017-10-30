@@ -1,10 +1,5 @@
 package arthur.douban.event;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -79,7 +74,7 @@ public class GroupEvent implements Event {
 			end();
 			return ;
 		}
-		GroupQueue.addOneEvent(new GroupEvent(index, entity, firstTime));
+		GroupQueue.addOneEvent(new GroupEvent(index+1, entity, firstTime));
 	}
 	// 解析一页
 	public void parseHtml(String str) {
