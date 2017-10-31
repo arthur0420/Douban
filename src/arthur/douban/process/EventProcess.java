@@ -5,6 +5,7 @@ package arthur.douban.process;
 import org.apache.log4j.Logger;
 
 import arthur.config.Config;
+import arthur.douban.event.Event;
 import arthur.douban.event.GroupEvent;
 import arthur.douban.event.TopicEvent;
 import arthur.douban.httpUtils.UHttpClient;
@@ -26,16 +27,17 @@ public class EventProcess extends Thread {
 	@Override
 	public void run() {
 		while(true){
+			Event oneEvent = null;
 			try {
-				GroupEvent oneEvent = GroupQueue.getOneEvent();
+				oneEvent = GroupQueue.getOneEvent();
 				if(oneEvent !=null){
 					String excute = excute(oneEvent.getUrl());
 					oneEvent.CallBack(excute);
 				}else{
-					TopicEvent topicEvent = TopicQueue.getOneEvent();
-					if(topicEvent !=null){
-						String excute = excute(topicEvent.getUrl());
-						topicEvent.CallBack(excute);
+					oneEvent = TopicQueue.getOneEvent();
+					if(oneEvent !=null){
+						String excute = excute(oneEvent.getUrl());
+						oneEvent.CallBack(excute);
 					}else{
 						boolean message = Consumer.getMessage();
 						if(message)
@@ -43,8 +45,8 @@ public class EventProcess extends Thread {
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
-				log.error(e);
+//				e.printStackTrace();
+				log.error("url:"+oneEvent.getUrl(),e);
 			}
 			try {
 				Thread.sleep(requestInterval);

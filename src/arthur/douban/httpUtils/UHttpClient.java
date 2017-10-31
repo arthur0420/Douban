@@ -111,11 +111,11 @@ public class UHttpClient {
 	
 	public static void main(String[] args) {
 		try {
-		
-			String string = get("https://www.douban.com/group/topic/108656746/");
-			log.info(string);
+			UHttpClient.init();
+			String string = get("https://www.douban.com/group/topic/109085873");
+//			log.info(string);
 			Document html = Jsoup.parse(string);
-			
+			System.out.println(html);
 			Element comments = html.getElementById("comments");
 			Elements lis = comments.getElementsByTag("li");
 			System.out.println(lis.size());

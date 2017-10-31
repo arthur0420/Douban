@@ -34,13 +34,26 @@ public class ConnectionUtils {
         return conn;
     }
     public static void main(String[] args) throws SQLException {
+    	Group group = new Group("586674", "586674", "https://www.douban.com/group/586674/", 0);
+    	updateEntity(group);
+    	/*Connection connection = getConnection();
+    	PreparedStatement ps = connection.prepareStatement("update `group`  set name=? ,url=? ,breakpoint=?  where  id = ?");
+    	
+    	ps.setString(1, "559626");
+    	ps.setString(2, "https://www.douban.com/group/559626/");
+    	ps.setLong(3, 0L);
+    	ps.setString(4, "4");
+    	int executeUpdate = ps.executeUpdate();
+    	System.out.println(executeUpdate);*/
 	}
 
     public static  <T> void  insertEntity(T obj){
     	Connection conn = null;
 		Statement state = null;
+		PreparedStatement ps = null;
 		Class clazz = obj.getClass();
 		try {
+			 
 			conn = ConnectionUtils.getConnection();
 			state = conn.createStatement();
 			
@@ -55,64 +68,72 @@ public class ConnectionUtils {
 			String id = "";
 			Method method = clazz.getMethod("getId");
 			id = (String)method.invoke(obj);
-			
-			String sql = "select * from "+tableName+" where  "+fieldName+" = '"+id+"'";
-			ResultSet re = state.executeQuery(sql);   // 是不是存在
-			if(re.next()){
-				updateEntity(obj);
-				return;
+			System.out.println(id);
+			if(id != null  && !id.equals("")){
+				String sql = "select * from "+tableName+" where  "+fieldName+" = '"+id+"'";
+				ResultSet re = state.executeQuery(sql);   // 是不是存在
+				if(re.next()){
+					updateEntity(obj);
+					return;
+				}
 			}
+			
 			String insertSql1 = "  insert into "+tableName+" (";
 			String insertSql2 = ") values (";
 			Field[] declaredFields = clazz.getDeclaredFields();
-			for(int i = 0 ; i< declaredFields.length ; i++){
+			
+			ArrayList<String> typeNameList = new ArrayList<String>();
+			ArrayList<Object> valueList = new ArrayList<Object>();
+			for(int i = 0 ; i< declaredFields.length ; i++){  //组织语句
 				Field one = declaredFields[i];
 				arthur.douban.dataUtils.Field annotation = one.getAnnotation(arthur.douban.dataUtils.Field.class);
 				if(annotation!=null){
 					boolean ignore = annotation.ignore();
 					if(ignore)continue;
 				}
-		    	String tableFieldName =null;
-		    	String classFieldName =one.getName();
-		    	String name = one.getName();
+				
+				String name = one.getName();
 		    	name = name.substring(0,1).toUpperCase()+name.substring(1);
 		    	Method method2 = clazz.getMethod("get"+name);
 		    	Object value = method2.invoke(obj);
+		    	if(value == null)continue;
+		    	valueList.add(value);
+				String typeName = one.getType().getSimpleName();
+				typeNameList.add(typeName);
+		    	String tableFieldName =null;
+		    	String classFieldName =one.getName();
 		    	if(annotation !=null){
 		    		tableFieldName = annotation.fiedlName();
 		    	}else{
 		    		tableFieldName = classFieldName;
 		    	}
-		    	String typeName = one.getType().getSimpleName();
-		    	switch (typeName) {
-					case "String":
-						if(value == null)break;
-						insertSql1 = insertSql1+tableFieldName+",";
-						String valueStr =  value.toString();
-						if(valueStr.indexOf("'")!=-1){
-							valueStr = valueStr.replaceAll("'", "‘"); 
-						}
-						insertSql2 = insertSql2+" '"+valueStr+"',";
-						break; 
-					case "long":
-						if(value ==null )break;
-						insertSql1 = insertSql1+tableFieldName+",";
-						insertSql2 = insertSql2+""+value+",";
-						break;
-					case "int":
-						if(value == null )break;
-						insertSql1 = insertSql1+tableFieldName+",";
-						insertSql2 = insertSql2+""+value+",";
-						break;
-					default:
-						throw new RuntimeException("未能识别的数据类型");
-				}
+		    	insertSql1 = insertSql1+tableFieldName+",";
+		    	insertSql2 = insertSql2+" ?,";
 			}
 			insertSql1 = insertSql1.substring(0, insertSql1.length()-1);
 			insertSql2 = insertSql2.substring(0, insertSql2.length()-1);
 			String insertSql =  insertSql1 + insertSql2 +")";
 			log.info("excute sql :"+insertSql);
-			int executeUpdate = state.executeUpdate(insertSql);
+			ps = conn.prepareStatement(insertSql);
+			for(int j = 0 ; j< valueList.size(); j++){
+		    	Object value = valueList.get(j);
+				String typeName = typeNameList.get(j);
+				switch (typeName) {
+					case "String":
+						String valueStr =  value.toString();
+						ps.setString(j+1, valueStr);
+						break; 
+					case "long":
+						ps.setLong(j+1, (Long)value);
+						break;
+					case "int":
+						ps.setInt(j+1, (int)value);
+						break;
+					default:
+						throw new RuntimeException("未能识别的数据类型");
+				}
+			}
+			int executeUpdate = ps.executeUpdate();
 			if(executeUpdate !=1){
 				log.error("insert fail");
 			}
@@ -171,9 +192,6 @@ public class ConnectionUtils {
 				String typeName = one.getType().getSimpleName();
 				methodList.add(method2);
 				typeNameList.add(typeName);
-				
-				
-				
 				
 		    	String tableFieldName =null;
 		    	String classFieldName =one.getName();
@@ -370,7 +388,7 @@ public class ConnectionUtils {
      * @return
      * @throws SQLException
      */
-    private static <A> Object oneFiledValueGet(Field f , ResultSet re) throws SQLException{
+    private static  Object oneFiledValueGet(Field f , ResultSet re) throws SQLException{
     	arthur.douban.dataUtils.Field annotation = f.getAnnotation(arthur.douban.dataUtils.Field.class);
     	String tableFieldName =null;
     	String classFieldName =f.getName();
@@ -408,11 +426,9 @@ public class ConnectionUtils {
     }
     //不关闭 链接的处理。
     public static  <T> void  updateEntity(T obj,Connection conn){
-		Statement state = null;
+		PreparedStatement ps = null;
 		Class clazz = obj.getClass();
 		try {
-			state = conn.createStatement();
-			
 			Entity annotationEntity = (Entity)clazz.getAnnotation(Entity.class);
 			String tableName = annotationEntity.tableName();
 			Field field = clazz.getDeclaredField("id");
@@ -428,9 +444,12 @@ public class ConnectionUtils {
 				log.error("error id 为空");
 				return;
 			}
-			String updateSql = "  update "+tableName+" set  ";
+			String updateSql = "  update "+tableName+"  set ";
 			
 			Field[] declaredFields = clazz.getDeclaredFields();
+			
+			List<Object> vl = new ArrayList<Object>();
+			List<String> tl = new ArrayList<>();
 			for(int i = 0 ; i< declaredFields.length ; i++){
 				Field one = declaredFields[i];
 				arthur.douban.dataUtils.Field annotation = one.getAnnotation(arthur.douban.dataUtils.Field.class);
@@ -441,46 +460,52 @@ public class ConnectionUtils {
 		    	String tableFieldName =null;
 		    	String classFieldName =one.getName();
 		    	String name = one.getName();
+		    	if(name.equals("id"))continue;
 		    	name = name.substring(0,1).toUpperCase()+name.substring(1);
 		    	Method method2 = clazz.getMethod("get"+name);
-		    	
 		    	Object value = method2.invoke(obj);
-		    	if(value == null || "".equals(value))continue;
 		    	if(annotation !=null){
 		    		tableFieldName = annotation.fiedlName();
 		    	}else{
 		    		tableFieldName = classFieldName;
 		    	}
 		    	String typeName = one.getType().getSimpleName();
-		    	
-		    	switch (typeName) {
+		    	if(value == null)continue;
+		    	updateSql = updateSql +tableFieldName+"=? ,";
+		    	vl.add(value);
+		    	tl.add(typeName);
+			}
+			updateSql  = updateSql.substring(0,updateSql.length()-1);
+			updateSql = updateSql+" where  "+fieldName +" = ?";
+			ps = conn.prepareStatement(updateSql);
+			
+			for(int i = 0 ; i<tl.size(); i++){
+				Object value = vl.get(i);
+				String typeName = tl.get(i);
+				switch (typeName) {
 					case "String":
-						if(value.equals(""))break;
-						updateSql = updateSql +tableFieldName+"='"+value+"',";
-						break; 
+						ps.setString(i+1, value.toString());
+						break;
 					case "long":
-						if((Long)value == 0)break;
-						updateSql = updateSql +tableFieldName+"="+value+" ,";
+						ps.setLong(i+1, (Long)value);
 						break;
 					case "int":
-						if((int)value == 0)break;
-						updateSql = updateSql +tableFieldName+"="+value+" ,";
+						ps.setInt(i+1, (int)value);
 						break;
 					default:
 						throw new RuntimeException("未能识别的数据类型");
-				}
+		    	}
 			}
-			updateSql  = updateSql.substring(0,updateSql.length()-1);
-			updateSql = updateSql+" where "+fieldName +" = '"+id+"'";
+			ps.setString(tl.size()+1, id);
 			log.info("excute sql :"+updateSql);
-			int executeUpdate = state.executeUpdate(updateSql);
+			int executeUpdate = ps.executeUpdate();
 			if(executeUpdate !=1){
 				log.error("update fail");
 			}
 		} catch (Exception e) {
 			log.error("",e);
 		}finally{
-			try {if(state!=null){state.close();}} catch (Exception e2) {}
+			try {if(ps!=null){ps.close();}} catch (Exception e2) {}
 		}
     }
     public static  <T> void  deleteEntity(T obj){

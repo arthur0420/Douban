@@ -70,9 +70,6 @@ public class Consumer  extends Thread{
     		GroupQueue.addOneEvent((GroupEvent)objectByByteArray);
     	}
     	return true;
-    	
-    	
-    	 
 	}
 	public synchronized  static void setMessage(GroupEvent e) throws Exception{
 		bos.write("setG".getBytes());
