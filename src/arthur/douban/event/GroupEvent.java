@@ -16,13 +16,14 @@ import arthur.douban.entity.Group;
 import arthur.douban.entity.Topic;
 import arthur.douban.queue.GroupQueue;
 
-public class GroupEvent implements Event {
+public class GroupEvent extends MessageWrapper implements Event {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 2364828785256179054L;
 	private static Logger log = Logger.getLogger(GroupEvent.class);
 	private static int loadPageNum = 10; //初始化，每次加载十页
+	
 	{
 		try {
 			loadPageNum =  Integer.parseInt(Config.getConfig("loadPageNum"));
@@ -157,4 +158,5 @@ public class GroupEvent implements Event {
 		entity.setBreakpoint(firstTime);
 		ConnectionUtils.updateEntity(entity);
 	}
+	
 }

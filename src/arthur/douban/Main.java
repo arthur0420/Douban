@@ -56,9 +56,11 @@ public class Main {
 	public static void client() throws Exception{ // 服务端
 		UHttpClient.init();
 		// event池处理线程
+		
+		Consumer.init();
+		
 		EventProcess eventProcess  = new EventProcess();
 		eventProcess.start();
-		Consumer.init();
 	}
 	public static void registerSinal(){
 		Runtime.getRuntime().addShutdownHook(new Thread() { 

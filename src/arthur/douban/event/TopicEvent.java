@@ -19,7 +19,7 @@ import arthur.douban.entity.Topic;
 import arthur.douban.queue.TopicQueue;
 import arthur.douban.queue.mq.Consumer;
 
-public class TopicEvent implements Event {
+public class TopicEvent extends MessageWrapper implements Event {
 	
 	/**
 	 * 
@@ -28,24 +28,35 @@ public class TopicEvent implements Event {
 	private static Logger log = Logger.getLogger(TopicEvent.class);
 	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	String baseUrl = "https://www.douban.com/group/topic/"; ///?start=100
-	Topic entity = null;
+	
+	
+	String topicId;
+	long flush_time ;
+	String group_name;
+	
 	
 	int start ;
 	int end ; 
-	String topicId;
-	String id;
 	String url;
 	
 	
+	long topicPublishTime ;
 	
-	
-	public TopicEvent(Topic entity) {
+	/*public TopicEvent(Topic entity ) {
 		this.entity = entity;
 		topicId = entity.getId();
 		int last_reply_num = entity.getLast_reply_num();
 		int flush_reply_num = entity.getFlush_reply_num();
 		start = flush_reply_num/100;  
 		end = last_reply_num/100;
+		url = baseUrl+topicId+"/?start="+start*100;
+	}*/
+	public TopicEvent(String topicId,long flush_time,String group_name,int start,int end) {
+		this.topicId = topicId;
+		this.flush_time = flush_time;
+		this.group_name = group_name;
+		this.start = start;
+		this.end = end;
 		url = baseUrl+topicId+"/?start="+start*100;
 	}
 	public String getUrl(){
@@ -62,12 +73,6 @@ public class TopicEvent implements Event {
 		}else{
 			parseHtml(reponseStr);
 		}
-		if(start != end){  // 每次加载一页， 一页加载完成之后，   start +1，把自己添加到  队列里待执行。
-			int flush_reply_num = entity.getFlush_reply_num();
-			entity.setFlush_reply_num(flush_reply_num+100); // 下一页
-//			TopicQueue.addOneEvent();
-			Consumer.setMessage(new TopicEvent(entity));
-		}
 	}
 	public  void parseHtml(String str) throws Exception {
 		Document html = Jsoup.parse(str);
@@ -79,8 +84,11 @@ public class TopicEvent implements Event {
 			Elements elements = html.getElementsByAttributeValue("class", "color-green");
 			Element element = elements.get(0);
 			String timeStr = element.text();
-			Long parseTime = parseTime(timeStr);
-			entity.setPublish_time(parseTime);
+			topicPublishTime = parseTime(timeStr);
+			Topic topic = new Topic();
+			topic.setId(topicId);
+			topic.setPublish_time(topicPublishTime);
+			ConnectionUtils.updateEntity(topic);
 		} catch (Exception e) {
 		}
 		processDom(html);
@@ -90,13 +98,13 @@ public class TopicEvent implements Event {
 		Elements lis = comments.getElementsByTag("li");
 		log.info("comment size:"+lis.size());
 		int sum = 0;
-		long flush_time = 0;
+		long comment_lastReply_time = 0;
 		List<Comment> cl = new ArrayList<Comment>();
 		for(int i = 0 ; i<lis.size() ;i++){
 			Element li =  lis.get(i);
 			String timeStr = li.getElementsByClass("pubtime").get(0).text();
-			Long pubtime = parseTime(timeStr); // 发布时间
-			if(pubtime > entity.getFlush_time()){
+			Long pubtime = parseTime(timeStr); // 单条发布时间
+			if(pubtime > flush_time){
 				Elements as = li.getElementsByTag("a");
 				Element a = as.get(0);
 				String authorHref =a.attr("href");
@@ -111,27 +119,37 @@ public class TopicEvent implements Event {
 					content =quoteContent +"<p>main</p>"+content; //内容
 				}
 				String id = li.attr("id");
-				
-				Comment comment = new Comment(id, entity.getId(), author, content, pubtime, entity.getGroup_name());
+				Comment comment = new Comment(id, topicId, author, content, pubtime, group_name);
 				cl.add(comment);
-				sum++;
-				flush_time = pubtime;
+				sum++; 
+				comment_lastReply_time  = pubtime;
 			}
 		}
 		if(sum>0){
-			int flush_reply_num = entity.getFlush_reply_num();
-			entity.setFlush_reply_num(flush_reply_num+sum);
-			entity.setFlush_time(flush_time);
+			Connection connection =null;
 			try {
-				Connection connection = ConnectionUtils.getConnection();
+				connection = ConnectionUtils.getConnection();
 				connection.setAutoCommit(false);
 				ConnectionUtils.batchInsert(cl,connection);
-				ConnectionUtils.updateEntity(entity,connection);
-				connection.commit();
-				connection.setAutoCommit(true);
-				connection.close();
+				if(start == end ){
+					ConnectionUtils.updateFlushTopic(topicId,comment_lastReply_time ,sum,connection);
+				}else{
+					ConnectionUtils.updateFlushTopic(topicId,sum,connection);
+				}
 			} catch (Exception e) {
+				if(connection!=null){
+					connection.rollback();
+					connection.setAutoCommit(true);
+					connection.close();
+					connection = null;
+				}
 				throw e;
+			}finally{
+				if(connection!=null){
+					connection.commit();
+					connection.setAutoCommit(true);
+					connection.close();
+				}
 			}
 		}
 	}
@@ -145,7 +163,10 @@ public class TopicEvent implements Event {
 		}
 	}
 	public void end() {
-		entity.setFlush_reply_num(Integer.MAX_VALUE);
-		ConnectionUtils.updateEntity(entity);
+//		TODO 错误情况。
+		Topic topic = new Topic();
+		topic.setId(topicId);
+		topic.setFlush_reply_num(Integer.MAX_VALUE);
+		ConnectionUtils.updateEntity(topic);
 	}
 }

@@ -45,7 +45,7 @@ public class EventProcess extends Thread {
 					}
 				}
 			} catch (Exception e) {
-//				e.printStackTrace();
+				e.printStackTrace();
 				log.error("url:"+oneEvent.getUrl(),e);
 			}
 			try {

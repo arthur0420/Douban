@@ -34,8 +34,12 @@ public class ConnectionUtils {
         return conn;
     }
     public static void main(String[] args) throws SQLException {
-    	Group group = new Group("586674", "586674", "https://www.douban.com/group/586674/", 0);
-    	updateEntity(group);
+    	Object a = 123l;
+    	System.out.println(a instanceof Long);
+    	/*Topic topic = new Topic();
+		topic.setId("96060437");
+		topic.setPublish_time(1484321426000l);
+    	updateEntity(topic);*/
     	/*Connection connection = getConnection();
     	PreparedStatement ps = connection.prepareStatement("update `group`  set name=? ,url=? ,breakpoint=?  where  id = ?");
     	
@@ -68,7 +72,6 @@ public class ConnectionUtils {
 			String id = "";
 			Method method = clazz.getMethod("getId");
 			id = (String)method.invoke(obj);
-			System.out.println(id);
 			if(id != null  && !id.equals("")){
 				String sql = "select * from "+tableName+" where  "+fieldName+" = '"+id+"'";
 				ResultSet re = state.executeQuery(sql);   // 是不是存在
@@ -97,6 +100,8 @@ public class ConnectionUtils {
 		    	Method method2 = clazz.getMethod("get"+name);
 		    	Object value = method2.invoke(obj);
 		    	if(value == null)continue;
+		    	if(value instanceof Long && (Long)value == 0)continue;
+		    	if(value instanceof Integer && (Integer)value == 0)continue;
 		    	valueList.add(value);
 				String typeName = one.getType().getSimpleName();
 				typeNameList.add(typeName);
@@ -155,7 +160,7 @@ public class ConnectionUtils {
 			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
     }
-    public static <A> void batchInsert(List<A> list,Connection conn){
+    public static <A> void batchInsert(List<A> list,Connection conn) throws Exception{
     	PreparedStatement ps = null;
 		Object obj = list.get(0);
 		Class clazz = obj.getClass();
@@ -240,6 +245,7 @@ public class ConnectionUtils {
 			log.info("executeBatch  , listSize:"+list.size() +", success:"+ execute);
 		} catch (Exception e) {
 			log.error("",e);
+			throw e;
 		}finally{
 			try {if(ps!=null){ps.close();}} catch (Exception e2) {}
 		}
@@ -471,6 +477,8 @@ public class ConnectionUtils {
 		    	}
 		    	String typeName = one.getType().getSimpleName();
 		    	if(value == null)continue;
+		    	if(value instanceof Long && (Long)value == 0)continue;
+		    	if(value instanceof Integer && (Integer)value == 0)continue;
 		    	updateSql = updateSql +tableFieldName+"=? ,";
 		    	vl.add(value);
 		    	tl.add(typeName);
@@ -508,6 +516,42 @@ public class ConnectionUtils {
 			try {if(ps!=null){ps.close();}} catch (Exception e2) {}
 		}
     }
+    public static void updateFlushTopic(String topicId, long flush_time,int commentSum,Connection conn) throws Exception{
+    	Statement state =null; 
+    	try {
+    		state = conn.createStatement();
+    		String sql = "update topic  set  flush_time="+flush_time+",flush_reply_num=flush_reply_num+"+commentSum+"    where topic_id = "+topicId;
+    		log.info("update  sql:"+sql);
+    		int executeUpdate = state.executeUpdate(sql);
+    		if(executeUpdate!=1){
+    			log.error("update sql fail ,sql :"+sql);
+    		}
+		} catch (Exception e) {
+			log.equals(e);
+			throw e;
+		}finally{
+			if(state!=null)state.close();
+		}
+    }
+	public static void updateFlushTopic(String topicId,int commentSum,Connection conn) throws Exception{
+		Statement state =null; 
+    	try {
+    		state = conn.createStatement();
+    		String sql = "update topic  set  flush_reply_num=flush_reply_num+"+commentSum+"    where topic_id = "+topicId;
+    		log.info("update  sql:"+sql);
+    		int executeUpdate = state.executeUpdate(sql);
+    		if(executeUpdate!=1){
+    			log.error("update sql fail ,sql :"+sql);
+    		}
+		} catch (Exception e) {
+			log.equals(e);
+			throw e;
+		}finally{
+			if(state!=null)state.close();
+		}
+	}
+    
+    
     public static  <T> void  deleteEntity(T obj){
     	Connection conn = null;
 		Statement state = null;

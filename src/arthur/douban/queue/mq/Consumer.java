@@ -77,8 +77,6 @@ public class Consumer  extends Thread{
 		byte[] byteArray = DataFormat.getByteArray(e);
 		bos.write(byteArray);
 		bos.flush();
-		
-		
 		heartBeat = System.currentTimeMillis();
 	}
 	public  synchronized static void setMessage(TopicEvent e) throws Exception{

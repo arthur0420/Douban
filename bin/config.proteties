@@ -1,6 +1,6 @@
 requestInterval=500
 ##每次请求间隔  单位 ms
-loadPageNum=30
+loadPageNum=3
 ##每次加载页数
 groupScannerInterval=30
 ##组扫码时间间隔    单位分钟。
