@@ -14,7 +14,7 @@ import arthur.config.Config;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Group;
 import arthur.douban.entity.Topic;
-import arthur.douban.queue.GroupQueue;
+import arthur.douban.queue.EventQueue;
 
 public class GroupEvent extends MessageWrapper implements Event {
 	/**
@@ -75,7 +75,7 @@ public class GroupEvent extends MessageWrapper implements Event {
 			end();
 			return ;
 		}
-		GroupQueue.addOneEvent(new GroupEvent(index+1, entity, firstTime));
+		EventQueue.singleInstance().addOneEvent(new GroupEvent(index+1, entity, firstTime));
 	}
 	// 解析一页
 	public void parseHtml(String str) {
@@ -83,6 +83,7 @@ public class GroupEvent extends MessageWrapper implements Event {
 		Document html = Jsoup.parse(str);
 		Elements elements = html.getElementsByAttributeValue("class", "olt");
 		if(elements.size() == 0){
+			nowBreakpoint = -1;
 			log.info("elements null; html:"+str);
 			return ;
 		}

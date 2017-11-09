@@ -16,8 +16,7 @@ import org.jsoup.select.Elements;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Comment;
 import arthur.douban.entity.Topic;
-import arthur.douban.queue.TopicQueue;
-import arthur.douban.queue.mq.Consumer;
+import arthur.douban.queue.mq.DataFormat;
 
 public class TopicEvent extends MessageWrapper implements Event {
 	
@@ -95,7 +94,15 @@ public class TopicEvent extends MessageWrapper implements Event {
 	}
 	private void processDom(Document html) throws Exception{
 		Element comments = html.getElementById("comments");
+		if(comments == null){
+			log.info("have no id  comments");
+			return ;
+		}
 		Elements lis = comments.getElementsByTag("li");
+		if(lis.size()  == 0 ){
+			log.info("have no id  lis");
+			return ;
+		}
 		log.info("comment size:"+lis.size());
 		int sum = 0;
 		long comment_lastReply_time = 0;
@@ -168,5 +175,9 @@ public class TopicEvent extends MessageWrapper implements Event {
 		topic.setId(topicId);
 		topic.setFlush_reply_num(Integer.MAX_VALUE);
 		ConnectionUtils.updateEntity(topic);
+	}
+	public static void main(String[] args) throws Exception {
+		byte[] byteArray = DataFormat.getByteArray(new TopicEvent("1", 1, "1", 1, 2));
+		System.out.println(byteArray.length);
 	}
 }

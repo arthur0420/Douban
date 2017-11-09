@@ -2,23 +2,16 @@ package arthur.douban.queue.mq;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-
-import javax.lang.model.util.SimpleAnnotationValueVisitor6;
 
 import org.apache.log4j.Logger;
 
 import arthur.config.Config;
+import arthur.douban.event.Event;
 import arthur.douban.event.GroupEvent;
 import arthur.douban.event.TopicEvent;
-import arthur.douban.queue.GroupQueue;
-import arthur.douban.queue.TopicQueue;
+import arthur.douban.queue.EventQueue;
 
 public class Consumer  extends Thread{
 	private static Logger log = Logger.getLogger(Consumer.class);
@@ -39,6 +32,9 @@ public class Consumer  extends Thread{
         new Consumer().start();
 	}
 	public synchronized  static void end() throws Exception{
+		bos.write("clz".getBytes());
+		bos.flush();
+		Thread.sleep(100);
 		if(client !=null)
 			client.close();
 		runFlag = false;
@@ -58,17 +54,35 @@ public class Consumer  extends Thread{
     	}
     	byte[] buff = new byte[available];
     	int read = bis.read(buff);
-    	if(read == 5){
+    	if(read == 6){
     		log.error("错误:"+new String(buff));
     		return false;
     	}
     	Object objectByByteArray = DataFormat.getObjectByByteArray(buff);
-    	String simpleName = objectByByteArray.getClass().getSimpleName();
-    	if(simpleName.equals("TopicEvent")){
-    		TopicQueue.addOneEvent((TopicEvent)objectByByteArray);
-    	}else{
-    		GroupQueue.addOneEvent((GroupEvent)objectByByteArray);
+    	EventQueue.singleInstance().addOneEvent((Event)objectByByteArray);
+    	return true;
+	}
+	public synchronized static boolean getTopicMessage() throws Exception{
+		heartBeat = System.currentTimeMillis();
+		bos.write("getT".getBytes());
+		bos.flush();
+		int available =bis.available();
+    	while(true){
+    		if(available >0){
+    			break;
+    		}else{
+    			Thread.sleep(100);
+    		}
+    		available = bis.available();
     	}
+    	byte[] buff = new byte[available];
+    	int read = bis.read(buff);
+    	if(read == 6){
+    		log.error("nodata  :"+new String(buff));
+    		return false;
+    	}
+    	Object objectByByteArray = DataFormat.getObjectByByteArray(buff);
+    	EventQueue.singleInstance().addOneEvent((TopicEvent)objectByByteArray);
     	return true;
 	}
 	public synchronized  static void setMessage(GroupEvent e) throws Exception{
@@ -85,7 +99,6 @@ public class Consumer  extends Thread{
 		byte[] byteArray = DataFormat.getByteArray(e);
 		bos.write(byteArray);
 		bos.flush();
-		
 		heartBeat = System.currentTimeMillis();
 	}
 	public synchronized static void heartBeat() throws IOException{

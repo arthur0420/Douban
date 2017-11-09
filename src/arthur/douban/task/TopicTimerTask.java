@@ -8,18 +8,18 @@ import org.apache.log4j.Logger;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Topic;
 import arthur.douban.event.TopicEvent;
-import arthur.douban.queue.TopicQueue;
+import arthur.douban.queue.EventQueue;
 
 public class TopicTimerTask extends TimerTask{
 	static Logger log = Logger.getLogger(TopicTimerTask.class);
 	@Override
 	public void run() {
-		int queueSize = TopicQueue.getQueueSize();
+		int queueSize = EventQueue.queue("topic").getQueueSize();
 		if(queueSize>0){
 			log.info("topic event queue is not empty，size:"+queueSize);
 			return ;
 		}
-		List<Topic> entities = ConnectionUtils.getEntitiesCondition(Topic.class, " last_reply_num >flush_reply_num and last_reply_time>flush_time ", " last_reply_num - flush_reply_num desc");
+		List<Topic> entities = ConnectionUtils.getEntitiesCondition(Topic.class, " last_reply_num >flush_reply_num and last_reply_time>flush_time ", " last_reply_num - flush_reply_num desc   limit 0, 1000");
 		for(int i = 0 ; i< entities.size() ;i++){
 			Topic t = entities.get(i);
 			
@@ -33,13 +33,12 @@ public class TopicTimerTask extends TimerTask{
 			int end = last_reply_num/100;
 			for(;start <=end; start++ ){
 				log.info(topicId+","+start+","+end);
-				TopicQueue.addOneEvent(new TopicEvent(topicId, flush_time, group_name, start, end));
+				EventQueue.queue("topic").addOneEvent(new TopicEvent(topicId, flush_time, group_name, start, end));
 			}
 		}
-		System.out.println(123);
 	}
 	public static void main(String[] args) {
-		List<Topic> entities = ConnectionUtils.getEntitiesCondition(Topic.class, " last_reply_num >flush_reply_num", " last_reply_num - flush_reply_num desc");
+		List<Topic> entities = ConnectionUtils.getEntitiesCondition(Topic.class, " last_reply_num >flush_reply_num", " last_reply_num - flush_reply_num desc  limit 0, 10000");
 		System.out.println(entities.size());
 	}
 }

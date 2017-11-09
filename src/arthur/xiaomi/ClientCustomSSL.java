@@ -26,7 +26,9 @@
  */
 package arthur.xiaomi;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -52,39 +54,11 @@ import org.apache.http.util.EntityUtils;
 public class ClientCustomSSL {
 
     public final static void main(String[] args) throws Exception {
-        // Trust own CA and all self-signed certs
-    	SSLContext sslcontext = SSLContext.getInstance("SSL");
-		sslcontext.init(null,
-				new TrustManager[]{new TrustAnyTrustManager()},
-				new java.security.SecureRandom());
-        // Allow TLSv1 protocol only
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                sslcontext,
-                new String[] { "TLSv1" },
-                null,
-                SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-        CloseableHttpClient httpclient = HttpClients.custom()
-                .setSSLSocketFactory(sslsf)
-                .build();
-        try {
-
-            HttpGet httpget = new HttpGet("https://httpbin.org/");
-
-            System.out.println("Executing request " + httpget.getRequestLine());
-
-            CloseableHttpResponse response = httpclient.execute(httpget);
-            try {
-                HttpEntity entity = response.getEntity();
-
-                System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
-                EntityUtils.consume(entity);
-            } finally {
-                response.close();
-            }
-        } finally {
-            httpclient.close();
-        }
+    	BufferedReader br =new BufferedReader(new InputStreamReader(System.in));
+		while(true){
+			String readLine = br.readLine();
+			System.out.println(readLine);
+		}
     }
     private static class TrustAnyTrustManager implements X509TrustManager {
 		public void checkClientTrusted(X509Certificate[] chain, String authType)

@@ -2,20 +2,18 @@ package arthur.douban.queue.mq;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.IOException;
 import java.net.Socket;
-import java.util.Arrays;
 
-import org.apache.commons.lang.Validate;
 import org.apache.log4j.Logger;
 
+import arthur.douban.event.Event;
 import arthur.douban.event.GroupEvent;
 import arthur.douban.event.TopicEvent;
-import arthur.douban.queue.GroupQueue;
-import arthur.douban.queue.TopicQueue;
+import arthur.douban.queue.EventQueue;
 
 class ServerThread extends Thread {  
 	private static Logger log = Logger.getLogger(ServerThread.class);
+	private static byte[] NODATA = "nodata".getBytes();
     private Socket client = null;
     private long  heartbeat = 0l;
     boolean flag =true;
@@ -30,7 +28,7 @@ class ServerThread extends Thread {
         	BufferedOutputStream bos = new BufferedOutputStream(client.getOutputStream());  
         	//输入
         	BufferedInputStream bis = new BufferedInputStream(client.getInputStream());  
-              
+            
             while(flag){  
             	byte[] buff = new byte[1024];
             	int read = bis.read(buff);
@@ -44,6 +42,9 @@ class ServerThread extends Thread {
             	switch (command) {
 				case "getE":
 					getEvent(bos);
+					break;
+				case "getT":
+					getTopic(bos);
 					break;
 				case "setG":
 					setGroup(bis);
@@ -71,18 +72,30 @@ class ServerThread extends Thread {
     }
     private void getEvent(BufferedOutputStream bos) throws Exception{
     	byte[] returnByte = null;
-    	GroupEvent oneEvent = GroupQueue.getOneEvent();
+    	Event oneEvent = EventQueue.queue("group").getOneEvent();
     	
 		if(oneEvent !=null){
 			returnByte = DataFormat.getByteArray(oneEvent);
 		}else{
-			TopicEvent topicEvent = TopicQueue.getOneEvent();
-			if(topicEvent !=null){
-				returnByte = DataFormat.getByteArray(topicEvent);
+			oneEvent = EventQueue.queue("topic").getOneEvent();
+			if(oneEvent !=null){
+				returnByte = DataFormat.getByteArray(oneEvent);
 			}
 		}
 		if(returnByte == null){
-			returnByte = "nodata".getBytes(); 
+			returnByte = NODATA; 
+		}
+		bos.write(returnByte);
+		bos.flush();
+    }
+    private void getTopic(BufferedOutputStream bos) throws Exception{
+    	byte[] returnByte = null;
+		Event topicEvent = EventQueue.queue("topic").getOneEvent();
+		if(topicEvent !=null){
+			returnByte = DataFormat.getByteArray(topicEvent);
+		}
+		if(returnByte == null){
+			returnByte = NODATA; 
 		}
 		bos.write(returnByte);
 		bos.flush();
@@ -100,7 +113,7 @@ class ServerThread extends Thread {
     	byte[] buff = new byte[available];
     	bis.read(buff);
     	Object objectByByteArray = DataFormat.getObjectByByteArray(buff);
-    	GroupQueue.addOneEvent((GroupEvent)objectByByteArray);
+    	EventQueue.queue("group").addOneEvent((GroupEvent)objectByByteArray);
     }
     private void setTopic(BufferedInputStream bis)throws Exception{
     	int available =bis.available();
@@ -115,7 +128,7 @@ class ServerThread extends Thread {
     	byte[] buff = new byte[available];
     	bis.read(buff);
     	Object objectByByteArray = DataFormat.getObjectByByteArray(buff);
-    	TopicQueue.addOneEvent((TopicEvent)objectByByteArray);
+    	EventQueue.queue("topic").addOneEvent((TopicEvent)objectByByteArray);
     }
     private void heartBeat(){
     	heartbeat = System.currentTimeMillis();

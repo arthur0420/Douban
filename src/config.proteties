@@ -1,13 +1,31 @@
-requestInterval=500
-##每次请求间隔  单位 ms
-loadPageNum=30
-##每次加载页数
-groupScannerInterval=30
-##组扫码时间间隔    单位分钟。
+role=c
+#s是server  c是client
 
-##服务的ip和port
-ip=176.122.148.51
-port=20006
 
-#server=true
-client=true
+
+############### server
+
+	groupScannerInterval=30
+	##组扫码时间间隔    单位分钟。
+	topicScannerInterval=1
+	
+	##服务的ip和port
+	port=20006
+	
+	
+
+
+
+######### client 
+
+	requestInterval=500
+	##每次请求间隔  单位 ms
+	loadPageNum=30
+	##每次加载页数
+	consumerType=t
+	##g group  t topic 
+	
+	
+	ip=176.122.148.51
+	port=20006
+	##ip和端口

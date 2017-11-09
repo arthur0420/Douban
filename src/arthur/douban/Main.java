@@ -1,7 +1,9 @@
 package arthur.douban;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.Signer;
 import java.util.Properties;
 import java.util.Timer;
@@ -26,30 +28,31 @@ public class Main {
 		System.setProperty("com.mchange.v2.c3p0.cfg.xml",path);
 		
 		try {
-			String s = Config.getConfig("server");
-			String c = Config.getConfig("client");
-			if(s.equals("true")){
+			String role = Config.getConfig("role");
+			if(role.equals("s")){
 				server(); // server
-			}
-			if(c.equals("true")){
+			}else{
 				client(); // client
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(0);
 		}
-		registerSinal();
 	}
 	public static void server() throws Exception{ // server 端
 		int groupScannerInterval = 30;
-		String config = Config.getConfig("groupScannerInterval");
-		groupScannerInterval = Integer.parseInt(config);
-		if(groupScannerInterval!=0){
-			Timer groupSanner = new Timer();
-			groupSanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
-		}
+		int topicScannerInterval = 1;
+		String groupInterval = Config.getConfig("groupScannerInterval");
+		String topicInterval = Config.getConfig("topicScannerInterval");
+		
+		groupScannerInterval = Integer.parseInt(groupInterval);
+		topicScannerInterval = Integer.parseInt(topicInterval);
+		
+		Timer groupSanner = new Timer();
+		groupSanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
+		
 		Timer topicSanner = new Timer();
-		topicSanner.schedule(new TopicTimerTask(), 3000, 30*1000);
+		topicSanner.schedule(new TopicTimerTask(), 3000,topicScannerInterval *60*1000);
 		
 		ServerHold.init();
 	}
@@ -61,16 +64,37 @@ public class Main {
 		
 		EventProcess eventProcess  = new EventProcess();
 		eventProcess.start();
-	}
-	public static void registerSinal(){
+		
 		Runtime.getRuntime().addShutdownHook(new Thread() { 
             public void run() { 
-            	Main.releaseResource();
+            	Main.releaseClientResource();
             }
 		});
+		BufferedReader br =new BufferedReader(new InputStreamReader(System.in));
+		while(true){
+			String command = br.readLine();
+			if(command.equals("clz")){
+				System.exit(0);
+				break;
+			}
+		}
 	}
-	public static void releaseResource(){
+	public static void releaseServerResource(){
 		try {
+			//持久化
+			Thread.sleep(1000);
+		} catch (Exception e) {
+		}
+		System.out.println("!!!!!!!!!!!!!!!");
+		System.out.println("!!!!!!!!!!!!!!!");
+		System.out.println("!!!!!!!!!!!!!!!");
+		System.out.println("释放资源，关闭");
+	}
+	
+	public static void releaseClientResource(){
+		try {
+			EventProcess.stopRun();
+			Consumer.end();
 			Thread.sleep(1000);
 		} catch (Exception e) {
 		}

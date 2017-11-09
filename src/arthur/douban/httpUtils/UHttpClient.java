@@ -112,8 +112,8 @@ public class UHttpClient {
 	public static void main(String[] args) {
 		try {
 			UHttpClient.init();
-			String string = get("https://www.douban.com/group/topic/109085873");
-//			log.info(string);
+			String string = get("https://www.douban.com/group/topic/108059352/?start=0");
+			log.info(string);
 			Document html = Jsoup.parse(string);
 			System.out.println(html);
 			Element comments = html.getElementById("comments");
