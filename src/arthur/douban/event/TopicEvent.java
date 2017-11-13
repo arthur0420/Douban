@@ -16,9 +16,10 @@ import org.jsoup.select.Elements;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Comment;
 import arthur.douban.entity.Topic;
-import arthur.douban.queue.mq.DataFormat;
+import arthur.mq.message.MessageWrapper;
+import arthur.mq.utils.DataFormat;
 
-public class TopicEvent extends MessageWrapper implements Event {
+public class TopicEvent   implements Event {
 	
 	/**
 	 * 
@@ -62,16 +63,17 @@ public class TopicEvent extends MessageWrapper implements Event {
 		return url;
 	}
 	@Override
-	public void CallBack(String reponseStr) throws Exception {
+	public Event CallBack(String reponseStr) throws Exception {
 		if(reponseStr.equals("-1")){
 			end();
-			return ;
+			return null;
 		}
 		if(start == 0){
 			parseHtmlFirst(reponseStr);
 		}else{
 			parseHtml(reponseStr);
 		}
+		return null;
 	}
 	public  void parseHtml(String str) throws Exception {
 		Document html = Jsoup.parse(str);
@@ -180,4 +182,12 @@ public class TopicEvent extends MessageWrapper implements Event {
 		byte[] byteArray = DataFormat.getByteArray(new TopicEvent("1", 1, "1", 1, 2));
 		System.out.println(byteArray.length);
 	}
+	@Override
+	public String toString() {
+		return "TopicEvent [baseUrl=" + baseUrl + ", topicId=" + topicId
+				+ ", flush_time=" + flush_time + ", group_name=" + group_name
+				+ ", start=" + start + ", end=" + end + ", url=" + url
+				+ ", topicPublishTime=" + topicPublishTime + "]";
+	}
+	
 }

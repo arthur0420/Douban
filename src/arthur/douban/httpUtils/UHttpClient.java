@@ -33,6 +33,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import arthur.config.Config;
 import arthur.proxy.entity.HttpProxy;
 
 
@@ -43,7 +44,9 @@ public class UHttpClient {
 	private static CloseableHttpClient httpclient ;
 	private static DefaultConnectionKeepAliveStrategy myStrategy ;
 	private static RequestConfig rc ;
-	public static void init(){
+	private static String USERNAME ;
+	private static String PASSWORD;
+	public static void init() throws Exception{
 		
 		rc = RequestConfig.custom().setConnectionRequestTimeout(5000).setSocketTimeout(5000).setConnectTimeout(5000).build();
 		myStrategy =  new DefaultConnectionKeepAliveStrategy(){
@@ -67,6 +70,11 @@ public class UHttpClient {
 				setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)). // 重试 handler
 				setKeepAliveStrategy(myStrategy). // 长连接 策略
 				setDefaultCookieStore(cookieStore).build(); // cookiestore*/
+		
+		//登录
+		USERNAME = Config.getConfig("username");
+		PASSWORD = Config.getConfig("password");
+		login();
 	}
 	public static  String  get(String url){
 		String returnStr =null;
@@ -112,7 +120,7 @@ public class UHttpClient {
 	public static void main(String[] args) {
 		try {
 			UHttpClient.init();
-			String string = get("https://www.douban.com/group/topic/108059352/?start=0");
+			String string = get("https://www.douban.com/group/topic/92740168");
 			log.info(string);
 			Document html = Jsoup.parse(string);
 			System.out.println(html);
@@ -128,22 +136,21 @@ public class UHttpClient {
 		   try {
 	            HttpGet httpget = new HttpGet("https://www.douban.com/");
 	            httpget.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393");
-//	            httpget.setHeader("Host", "www.douban.com/");
 	            CloseableHttpResponse response1 = httpclient.execute(httpget);
 	            try {
 	                HttpEntity entity = response1.getEntity();
-	                FileOutputStream fos = new FileOutputStream(new File("d://loginPage.txt"));
+	                FileOutputStream fos = new FileOutputStream(new File("loginPage.html"));
 	                entity.writeTo(fos);
-	                System.out.println("Login form get: " + response1.getStatusLine());
+	              log.info("Login form get: " + response1.getStatusLine());
 	                EntityUtils.consume(entity);
 
-	                System.out.println("Initial set of cookies:");
+	              log.info("Initial set of cookies:");
 	                List<Cookie> cookies = cookieStore.getCookies();
 	                if (cookies.isEmpty()) {
-	                    System.out.println("None");
+	                  log.info("None cookies");
 	                } else {
 	                    for (int i = 0; i < cookies.size(); i++) {
-	                        System.out.println("- " + cookies.get(i).toString());
+	                      log.info("- " + cookies.get(i).toString());
 	                    }
 	                }
 	            } finally {
@@ -154,20 +161,17 @@ public class UHttpClient {
 	            
 	            post.setUri(new URI("https://www.douban.com/accounts/login"));
 	            
-	            login = post.addParameter("form_email", "a18795428457@163.com")
-	            		.addParameter("form_password", "loveislie")
+	            login = post.addParameter("form_email", USERNAME)
+	            		.addParameter("form_password", PASSWORD)
 	            		.build();
 	            login.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
-//	            login.setHeader("Host", "www.douban.com/");
-//	            login.setHeader("Referer","https://www.douban.com/");
-//	            login.setHeader("Content-Type","application/x-www-form-urlencoded");
 	            
 	            CloseableHttpResponse response2 = httpclient.execute(login);
 	            try {
 	                HttpEntity entity = response2.getEntity();
-	                System.out.println("Login form get: " + response2.getStatusLine());
+	             	log.info("Login form get: " + response2.getStatusLine());
 	                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	                FileOutputStream fos = new FileOutputStream(new File("d://xiaomi.txt"));
+	                FileOutputStream fos = new FileOutputStream(new File("homePage.html"));
 	                entity.writeTo(fos);
 	                EntityUtils.consume(entity);
 	            } finally {

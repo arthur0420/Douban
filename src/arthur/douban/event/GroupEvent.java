@@ -14,9 +14,10 @@ import arthur.config.Config;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Group;
 import arthur.douban.entity.Topic;
-import arthur.douban.queue.EventQueue;
+import arthur.mq.message.MessageWrapper;
+import arthur.mq.queue.MessageQueue;
 
-public class GroupEvent extends MessageWrapper implements Event {
+public class GroupEvent implements Event {
 	/**
 	 * 
 	 */
@@ -57,25 +58,24 @@ public class GroupEvent extends MessageWrapper implements Event {
 		return url;
 	}
 	@Override
-	public void CallBack(String reponseStr) {
+	public Event CallBack(String reponseStr) {
 		if(reponseStr.equals("-1")){  // 请求失败的情况。
 			log.info("group over by request_error id:"+entity.getId());
-//			end();
-			return ;
+			return null;
 		}
 		parseHtml(reponseStr);
 		if(index == loadPageNum-1){ // 超过了 配置文件中设定的，一次扫描页数，停止扫描。 index 从0开始。
 			log.info("group over by index == loadPageNum id:"+entity.getId()
 					+" ,index:"+ index+"== loadPageNum:"+loadPageNum);
 			end();
-			return ;
+			return null;
 		}
 		if(nowBreakpoint == -1){
 			log.info("group over by nowBreakpoint == -1 id:"+entity.getId());
 			end();
-			return ;
+			return null;
 		}
-		EventQueue.singleInstance().addOneEvent(new GroupEvent(index+1, entity, firstTime));
+		return new GroupEvent(index+1, entity, firstTime);
 	}
 	// 解析一页
 	public void parseHtml(String str) {
@@ -158,6 +158,12 @@ public class GroupEvent extends MessageWrapper implements Event {
 	public void end() {
 		entity.setBreakpoint(firstTime);
 		ConnectionUtils.updateEntity(entity);
+	}
+	@Override
+	public String toString() {
+		return "GroupEvent [index=" + index + ", url=" + url + ", entity="
+				+ entity + ", nowBreakpoint=" + nowBreakpoint + ", firstTime="
+				+ firstTime + ", year=" + year + "]";
 	}
 	
 }

@@ -13,10 +13,10 @@ import org.apache.log4j.PropertyConfigurator;
 import arthur.config.Config;
 import arthur.douban.httpUtils.UHttpClient;
 import arthur.douban.process.EventProcess;
-import arthur.douban.queue.mq.Consumer;
-import arthur.douban.queue.mq.ServerHold;
-import arthur.douban.task.GroupTimerTask;
-import arthur.douban.task.TopicTimerTask;
+import arthur.douban.producer.GroupTimerTask;
+import arthur.douban.producer.TopicTimerTask;
+import arthur.mq.client.Consumer;
+import arthur.mq.server.ServerHold;
 
 public class Main {
 	public static void main(String[] args) throws IOException {
@@ -57,15 +57,14 @@ public class Main {
 		ServerHold.init();
 	}
 	public static void client() throws Exception{ // 服务端
-		UHttpClient.init();
-		// event池处理线程
+		UHttpClient.init();// http 线程池
 		
-		Consumer.init();
+		Consumer.init();  // 和MQserver的连接
 		
-		EventProcess eventProcess  = new EventProcess();
+		EventProcess eventProcess  = new EventProcess();  // 执行
 		eventProcess.start();
 		
-		Runtime.getRuntime().addShutdownHook(new Thread() { 
+		Runtime.getRuntime().addShutdownHook(new Thread() {  // 关闭 钩子
             public void run() { 
             	Main.releaseClientResource();
             }
@@ -90,7 +89,6 @@ public class Main {
 		System.out.println("!!!!!!!!!!!!!!!");
 		System.out.println("释放资源，关闭");
 	}
-	
 	public static void releaseClientResource(){
 		try {
 			EventProcess.stopRun();

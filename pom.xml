@@ -1,62 +1,34 @@
-<project 
-  xmlns="http://maven.apache.org/POM/4.0.0" 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>    
-  <groupId>arthur</groupId>       <!-->项目的包名</-->
-  <artifactId>douban</artifactId>   <!-->模块名</-->
-  <version>V1</version>      <!-->版本</-->
-  <packaging>jar</packaging>
-  <name>douban</name>
-  <url>http://maven.apache.org</url>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  
-  <!-- 依赖项 -->
-<!--   <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-      排除依赖传递列表
-      <exclusions>
-        <exclusion></exclusion>
-      </exclusions>
-    </dependency>
-  </dependencies> -->
-  <!-- 依赖的管理，一般定义在父模块中，由子模块去继承 -->
-<!--   <dependencyManagement>
-    <dependencies>
-      <dependency></dependency>
-    </dependencies>
-  </dependencyManagement>
-  对构建行为提供相应的支持
-  <build>
-    插件列表
-    <plugins>
-      <plugin>
-        指定坐标
-        <groupId></groupId>
-        <artifactId></artifactId>
-        <version></version>
-      </plugin>
-    </plugins>
-  </build>
-  一般在子模块中指定所继承的父模块
-  <parent></parent>
-  模块列表
-  <modules>
-    <module></module>
-  </modules> -->
-  <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-compiler-plugin</artifactId>
-    <version>2.3.2</version>
-    <configuration>
-        <!--指定JDK版本-->
-        <source>1.8</source>
-        <target>1.8</target>
-    </configuration>
-</plugin>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>arthur</groupId>       <!-->项目的包名</ -->
+	<artifactId>douban</artifactId>   <!-->模块名</ -->
+	<version>V1</version>      <!-->版本</ -->
+	<packaging>jar</packaging>
+	<name>douban</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<!-- 依赖项 -->
+	<!-- <dependencies> <dependency> <groupId>junit</groupId> <artifactId>junit</artifactId> 
+		<version>3.8.1</version> <scope>test</scope> 排除依赖传递列表 <exclusions> <exclusion></exclusion> 
+		</exclusions> </dependency> </dependencies> -->
+	<!-- 依赖的管理，一般定义在父模块中，由子模块去继承 -->
+	<!-- <dependencyManagement> <dependencies> <dependency></dependency> </dependencies> 
+		</dependencyManagement> 对构建行为提供相应的支持 <build> 插件列表 <plugins> <plugin> 指定坐标 
+		<groupId></groupId> <artifactId></artifactId> <version></version> </plugin> 
+		</plugins> </build> 一般在子模块中指定所继承的父模块 <parent></parent> 模块列表 <modules> <module></module> 
+		</modules> -->
+	<plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-compiler-plugin</artifactId>
+		<version>2.3.2</version>
+		<configuration>
+			<!--指定JDK版本 -->
+			<source>1.8</source>
+			<target>1.8</target>
+		</configuration>
+	</plugin>
 </project>

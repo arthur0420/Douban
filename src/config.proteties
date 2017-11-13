@@ -22,10 +22,12 @@ role=c
 	##每次请求间隔  单位 ms
 	loadPageNum=30
 	##每次加载页数
-	consumerType=t
+	consumerType=topic
 	##g group  t topic 
 	
 	
 	ip=176.122.148.51
 	port=20006
 	##ip和端口
+	username=ouyangyasi@gmail.com
+	password=spider001
