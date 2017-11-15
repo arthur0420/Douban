@@ -1,6 +1,7 @@
 package arthur.douban.event;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -14,8 +15,7 @@ import arthur.config.Config;
 import arthur.douban.dataUtils.ConnectionUtils;
 import arthur.douban.entity.Group;
 import arthur.douban.entity.Topic;
-import arthur.mq.message.MessageWrapper;
-import arthur.mq.queue.MessageQueue;
+import arthur.douban.process.EventProcess;
 
 public class GroupEvent implements Event {
 	/**
@@ -63,7 +63,18 @@ public class GroupEvent implements Event {
 			log.info("group over by request_error id:"+entity.getId());
 			return null;
 		}
-		parseHtml(reponseStr);
+		final ArrayList<Topic> topicList = parseHtml(reponseStr);
+		if(topicList!=null)
+			EventProcess.addTask(new Runnable() {
+				@Override
+				public void run() {
+					for (int i = 0; i < topicList.size(); i++) {
+						Topic topic = topicList.get(i);
+						ConnectionUtils.insertEntity(topic);
+					}
+				}
+			});
+		
 		if(index == loadPageNum-1){ // 超过了 配置文件中设定的，一次扫描页数，停止扫描。 index 从0开始。
 			log.info("group over by index == loadPageNum id:"+entity.getId()
 					+" ,index:"+ index+"== loadPageNum:"+loadPageNum);
@@ -78,17 +89,18 @@ public class GroupEvent implements Event {
 		return new GroupEvent(index+1, entity, firstTime);
 	}
 	// 解析一页
-	public void parseHtml(String str) {
+	public ArrayList<Topic> parseHtml(String str) {
 		// if has no topic then throws a exception.
 		Document html = Jsoup.parse(str);
 		Elements elements = html.getElementsByAttributeValue("class", "olt");
 		if(elements.size() == 0){
 			nowBreakpoint = -1;
 			log.info("elements null; html:"+str);
-			return ;
+			return null;
 		}
 		Element table = elements.get(0);
 		Elements trs = table.getElementsByTag("tr");
+		ArrayList<Topic> insertTopicList = new ArrayList<Topic>();
 		int size = trs.size();
 		for(int i = 1 ; i< size; i++ ){
 			
@@ -129,12 +141,13 @@ public class GroupEvent implements Event {
 			topic.setLast_reply_time(parseTime);
 			topic.setGroup_name(entity.getName());
 			topic.setLast_reply_num(last_reply_num);
-			ConnectionUtils.insertEntity(topic);
+			insertTopicList.add(topic);
 		}
 		if(size <25){ // 最后一页，停止扫描。
 			log.info("size<25    id:"+entity.getId());
 			nowBreakpoint = -1;
 		}
+		return insertTopicList;
 	}
 	long parseTime(String str){
 		long time = 0;

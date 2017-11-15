@@ -44,7 +44,7 @@ public class Consumer  extends Thread{
 	 * @throws Exception
 	 */
 	public synchronized  static void end() throws Exception{
-		threadPool.shutdown();
+		threadPool.shutdown(); 
 		while(true){
 			boolean terminated = threadPool.isTerminated();
 			if(terminated)break;
@@ -60,6 +60,13 @@ public class Consumer  extends Thread{
 			client.close();
 		runFlag = false;
 	}
+	/**
+	 * push
+	 * @param command
+	 * @param executer
+	 * @return
+	 * @throws Exception
+	 */
 	public synchronized static boolean getMessage(Command command,MessageExecuter executer) throws Exception{
 		heartBeat = System.currentTimeMillis();
 		byte[] commandByteArray = DataFormat.getByteArray(command);
@@ -84,6 +91,25 @@ public class Consumer  extends Thread{
     	threadPool.execute(executer);
     	return true;
 	}
+	public synchronized static MessageWrapper getMessage(Command command) throws Exception{
+		heartBeat = System.currentTimeMillis();
+		byte[] commandByteArray = DataFormat.getByteArray(command);
+		bos.write(commandByteArray);
+		bos.flush();
+		int available =bis.available();
+    	while(true){
+    		if(available >0){
+    			break;
+    		}else{
+    			Thread.sleep(100);
+    		}
+    		available = bis.available();
+    	}
+    	byte[] buff = new byte[available];
+    	bis.read(buff);
+    	MessageWrapper message = (MessageWrapper)DataFormat.getObjectByByteArray(buff);
+    	return message;
+	}
 	public synchronized  static void setMessage(GroupEvent e) throws Exception{
 	}
 	public synchronized static void heartBeat() throws Exception{
@@ -92,6 +118,9 @@ public class Consumer  extends Thread{
 		bos.write(byteArray);
 		bos.flush();
 		heartBeat = System.currentTimeMillis();
+	}
+	public static void addTask(Runnable run){
+		threadPool.execute(run);
 	}
 	@Override
 	public void run() {

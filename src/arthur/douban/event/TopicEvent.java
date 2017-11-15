@@ -172,7 +172,6 @@ public class TopicEvent   implements Event {
 		}
 	}
 	public void end() {
-//		TODO 错误情况。
 		Topic topic = new Topic();
 		topic.setId(topicId);
 		topic.setFlush_reply_num(Integer.MAX_VALUE);

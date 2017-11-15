@@ -1,6 +1,14 @@
 package arthur.mq.message;
 
-public class MessageWrapper {
+import java.io.Serializable;
+
+public class MessageWrapper  implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	
 	private long messageId; // 队列中心提供。
 	private String topic ;
 	private String tag; 

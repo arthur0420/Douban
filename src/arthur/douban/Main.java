@@ -69,14 +69,6 @@ public class Main {
             	Main.releaseClientResource();
             }
 		});
-		BufferedReader br =new BufferedReader(new InputStreamReader(System.in));
-		while(true){
-			String command = br.readLine();
-			if(command.equals("clz")){
-				System.exit(0);
-				break;
-			}
-		}
 	}
 	public static void releaseServerResource(){
 		try {

@@ -34,21 +34,26 @@ public class ConnectionUtils {
         return conn;
     }
     public static void main(String[] args) throws SQLException {
-    	Object a = 123l;
-    	System.out.println(a instanceof Long);
-    	/*Topic topic = new Topic();
-		topic.setId("96060437");
-		topic.setPublish_time(1484321426000l);
-    	updateEntity(topic);*/
-    	/*Connection connection = getConnection();
-    	PreparedStatement ps = connection.prepareStatement("update `group`  set name=? ,url=? ,breakpoint=?  where  id = ?");
+    	Connection connection = getConnection();
+    	Statement s = connection.createStatement();
+    	ResultSet r = s.executeQuery("select * from topic a where a.flush_reply_num > a.last_reply_num");
+    	List l  =new ArrayList();
+    	while(r.next()){
+    		String string = r.getString(1);
+    		l.add(string);
+    	}
+    	s.close();
     	
-    	ps.setString(1, "559626");
-    	ps.setString(2, "https://www.douban.com/group/559626/");
-    	ps.setLong(3, 0L);
-    	ps.setString(4, "4");
-    	int executeUpdate = ps.executeUpdate();
-    	System.out.println(executeUpdate);*/
+    	PreparedStatement p = connection.prepareStatement("delete from comment  where topic_id =?");
+    	for (int i = 0; i < l.size(); i++) {
+			String t = (String)l.get(i);
+			p.setString(1, t);
+			p.addBatch();
+		}
+    	int[] executeBatch = p.executeBatch();
+    	for (int i = 0; i < executeBatch.length; i++) {
+			System.out.println(executeBatch[i]);
+		}
 	}
 
     public static  <T> void  insertEntity(T obj){

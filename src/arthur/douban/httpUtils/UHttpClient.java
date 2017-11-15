@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -15,7 +14,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
@@ -23,8 +21,6 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.params.HttpParamConfig;
-import org.apache.http.params.HttpParamsNames;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
@@ -65,15 +61,17 @@ public class UHttpClient {
 		phcm.setDefaultMaxPerRoute(20);
 		
 		HttpClientBuilder custom = HttpClients.custom();
-		httpclient = custom
-				.setConnectionManager(phcm). // 连接池
+		httpclient = custom.
+//				setConnectionManager(phcm). // 连接池
 				setRetryHandler(new DefaultHttpRequestRetryHandler(3, true)). // 重试 handler
-				setKeepAliveStrategy(myStrategy). // 长连接 策略
+//				setKeepAliveStrategy(myStrategy). // 长连接 策略
 				setDefaultCookieStore(cookieStore).build(); // cookiestore*/
 		
 		//登录
 		USERNAME = Config.getConfig("username");
 		PASSWORD = Config.getConfig("password");
+		
+		
 		login();
 	}
 	public static  String  get(String url){
@@ -121,14 +119,13 @@ public class UHttpClient {
 		try {
 			UHttpClient.init();
 			String string = get("https://www.douban.com/group/topic/92740168");
-			log.info(string);
+//			log.info(string);
 			Document html = Jsoup.parse(string);
-			System.out.println(html);
+//			System.out.println(html);
 			Element comments = html.getElementById("comments");
 			Elements lis = comments.getElementsByTag("li");
 			System.out.println(lis.size());
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -137,43 +134,59 @@ public class UHttpClient {
 	            HttpGet httpget = new HttpGet("https://www.douban.com/");
 	            httpget.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393");
 	            CloseableHttpResponse response1 = httpclient.execute(httpget);
-	            try {
-	                HttpEntity entity = response1.getEntity();
-	                FileOutputStream fos = new FileOutputStream(new File("loginPage.html"));
-	                entity.writeTo(fos);
-	              log.info("Login form get: " + response1.getStatusLine());
-	                EntityUtils.consume(entity);
-
-	              log.info("Initial set of cookies:");
-	                List<Cookie> cookies = cookieStore.getCookies();
-	                if (cookies.isEmpty()) {
-	                  log.info("None cookies");
-	                } else {
-	                    for (int i = 0; i < cookies.size(); i++) {
-	                      log.info("- " + cookies.get(i).toString());
-	                    }
-	                }
-	            } finally {
-	                response1.close();
-	            }
+	            String captcha_id = null; // captcha-id
+                String captcha_solution = null; //captcha-solution 
+                HttpEntity entity = response1.getEntity();
+                
+                ByteArrayOutputStream baos = (new ByteArrayOutputStream());
+                entity.writeTo(baos);
+                byte[] byteArray = baos.toByteArray();
+                baos.close();
+                EntityUtils.consume(entity);
+                
+                Document doc = Jsoup.parse(new String(byteArray,"UTF-8"));
+                Element captcha_image = doc.getElementById("captcha_image"); // 如果有验证码。
+                
+                if(captcha_image != null){ // 验证码 相关
+                	Elements elementsByAttributeValue = doc.getElementsByAttributeValue("name", "captcha-id");
+                	Element captcha_id_element = elementsByAttributeValue.get(0);
+                	captcha_id = captcha_id_element.attr("value");
+                	
+                	String imageUrl = captcha_image.attr("src");
+                	log.info("captchaImageUrl:"+imageUrl+",   captcha_id:"+captcha_id);
+                	
+                	HttpGet httpGet = new HttpGet(imageUrl);
+                	CloseableHttpResponse imageResponse = httpclient.execute(httpGet);
+                	HttpEntity imageEntity = imageResponse.getEntity();
+                	File file = new File("captcha.jpg");
+                	file.deleteOnExit();
+                	FileOutputStream ffos = new FileOutputStream(file,true);
+                	imageEntity.writeTo(ffos);
+                	ffos.close();
+                	EntityUtils.consume(imageEntity);
+                	captcha_solution = CaptchaSolution.getCaptchaFromFile();
+                }
 	            RequestBuilder post = RequestBuilder.post();
 	            HttpUriRequest login = null;
 	            
 	            post.setUri(new URI("https://www.douban.com/accounts/login"));
 	            
-	            login = post.addParameter("form_email", USERNAME)
-	            		.addParameter("form_password", PASSWORD)
-	            		.build();
+	            post.addParameter("form_email", USERNAME)
+	            	.addParameter("form_password", PASSWORD);
+	            if(captcha_id !=null){
+	            	post.addParameter("captcha-id", captcha_id)
+	            		.addParameter("captcha-solution", captcha_solution);
+	            }
+	            login = post.build();
 	            login.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
 	            
 	            CloseableHttpResponse response2 = httpclient.execute(login);
 	            try {
-	                HttpEntity entity = response2.getEntity();
+	                HttpEntity entity2 = response2.getEntity();
 	             	log.info("Login form get: " + response2.getStatusLine());
-	                ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	                FileOutputStream fos = new FileOutputStream(new File("homePage.html"));
-	                entity.writeTo(fos);
-	                EntityUtils.consume(entity);
+	                entity2.writeTo(fos);
+	                EntityUtils.consume(entity2);
 	            } finally {
 	                response2.close();
 	            }
