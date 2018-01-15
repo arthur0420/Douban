@@ -24,6 +24,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.apache.sling.commons.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -71,8 +72,7 @@ public class UHttpClient {
 		USERNAME = Config.getConfig("username");
 		PASSWORD = Config.getConfig("password");
 		
-		
-		login();
+//		login();
 	}
 	public static  String  get(String url){
 		String returnStr =null;
@@ -80,6 +80,8 @@ public class UHttpClient {
 		HttpProxy proxy = null;
         try {
             HttpGet httpGet = new HttpGet(url);
+            httpGet.setHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1");
+            //
             response  = httpclient.execute(httpGet);
             StatusLine httpStatus = response.getStatusLine();
             int statusCode = httpStatus.getStatusCode();
@@ -118,8 +120,21 @@ public class UHttpClient {
 	public static void main(String[] args) {
 		try {
 			UHttpClient.init();
-			String string = get("https://www.douban.com/group/topic/92740168");
-//			log.info(string);
+			String string = getApp("https://frodo.douban.com/api/v2/group/topic/111479588?"
+//					+ "udid=031d2121ac8b373f4534976b9b1d8661ff5448d"
+//					+ "&rom=android"
+//					+ "&apikey=0dad551ec0f84ed02907ff5c42e8ec70"
+//					+ "&s=rexxar_new"
+//					+ "&channel=Samsung_Market"
+//					+ "&device_id=03a1d2121ac8b373f4534976b9b1d8661ff5448d"
+//					+ "&os_rom=android"
+//					+ "&loc_id=118282"
+//					+ "&_sig=YL2AooTdtm0CWjLw7CKklMufbCk%3D"
+//					+ "&_ts=1515487825"
+					);
+			
+//			JSONObject jsonObject = new JSONObject(string);
+			log.info(string);
 			Document html = Jsoup.parse(string);
 //			System.out.println(html);
 			Element comments = html.getElementById("comments");
@@ -172,7 +187,8 @@ public class UHttpClient {
 	            post.setUri(new URI("https://www.douban.com/accounts/login"));
 	            
 	            post.addParameter("form_email", USERNAME)
-	            	.addParameter("form_password", PASSWORD);
+	            	.addParameter("form_password", PASSWORD)
+	            	.addParameter("remember", "on");
 	            if(captcha_id !=null){
 	            	post.addParameter("captcha-id", captcha_id)
 	            		.addParameter("captcha-solution", captcha_solution);
@@ -194,4 +210,45 @@ public class UHttpClient {
 	        }
 		}
 	
+	public static  String  getApp(String url){
+		String returnStr =null;
+		CloseableHttpResponse response = null ;
+		HttpProxy proxy = null;
+        try {
+            HttpGet httpGet = new HttpGet(url);
+            httpGet.setHeader("User-Agent", "Rexxar-Core/0.1.3 com.douban.frodo/5.17.0(120) Android/24 rom/android udid/03a1d2121ac8b373f4534976b9b1d8661ff5448d Rexxar/1.2.151");
+            response  = httpclient.execute(httpGet);
+            StatusLine httpStatus = response.getStatusLine();
+            int statusCode = httpStatus.getStatusCode();
+            if( statusCode== 200){
+            	HttpEntity entity = response.getEntity();
+            	ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            	entity.writeTo(bao);
+            	EntityUtils.consume(entity);
+            	returnStr = new String(bao.toByteArray(),"UTF-8");
+            	log.info("请求成功 ，url:"+url);
+            }else{
+            	log.info("请求失败 code:"+statusCode+",url:"+url);
+            	returnStr = "-1";
+            }
+        }catch(Exception e){
+        	log.error(e);
+        	returnStr = "-1";
+        }finally{
+        	if(proxy!=null){
+        		if(returnStr!=null && returnStr.equals("-1")){
+        			ProxyPool.removeProxy(proxy);
+        		}else{
+        			proxy.close();
+        		}
+        	}
+        	if(response!=null){
+        		try {
+					response.close();
+				} catch (IOException e) {
+				}
+        	}
+        }
+        return returnStr;
+	}
 }

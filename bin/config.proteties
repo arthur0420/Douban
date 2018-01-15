@@ -1,10 +1,10 @@
-role=c
+role=s
 #s是server  c是client
 
 
 
 ############### server
-
+	
 	groupScannerInterval=30
 	##组扫码时间间隔    单位分钟。
 	topicScannerInterval=1
@@ -13,21 +13,20 @@ role=c
 	port=20006
 	
 	
-
-
-
+	
+	
+	
 ######### client 
 
-	requestInterval=500
+	requestInterval=2000
 	##每次请求间隔  单位 ms
 	loadPageNum=30
 	##每次加载页数
 	consumerType=topic
 	##g group  t topic 
 	
-	
 	ip=176.122.148.51
 	port=20006
 	##ip和端口
-	username=ouyangyasi@gmail.com
-	password=spider001
+	username=a18795428457@163.com
+	password=loveislie

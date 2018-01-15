@@ -154,21 +154,24 @@ public class ConnectionUtils {
 			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
     }
-    public static  <A> void  batchInsert(List<A> list){
+    public static  <A> int  batchInsert(List<A> list){
     	Connection conn = null;
+    	int  executedNum = 0;
 		try {
 			conn = ConnectionUtils.getConnection();
-			batchInsert(list, conn);
+			executedNum = batchInsert(list, conn);
 		} catch (Exception e) {
 			log.error("",e);
 		}finally{
 			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
+		return executedNum;
     }
-    public static <A> void batchInsert(List<A> list,Connection conn) throws Exception{
+    public static <A> int batchInsert(List<A> list,Connection conn) throws Exception{
     	PreparedStatement ps = null;
 		Object obj = list.get(0);
 		Class clazz = obj.getClass();
+		int  execute= 0;
 		try {
 			Entity annotationEntity = (Entity)clazz.getAnnotation(Entity.class);
 			String tableName = annotationEntity.tableName();
@@ -243,9 +246,14 @@ public class ConnectionUtils {
 			}
 			
 			int[] batch= ps.executeBatch();
-			int  execute= 0;
+			
 			for(int i : batch){
-				execute+=i;
+				if(i == Statement.SUCCESS_NO_INFO){
+					execute++;
+				}
+				if(i>=0){
+					execute+=i;
+				}
 			}
 			log.info("executeBatch  , listSize:"+list.size() +", success:"+ execute);
 		} catch (Exception e) {
@@ -254,6 +262,7 @@ public class ConnectionUtils {
 		}finally{
 			try {if(ps!=null){ps.close();}} catch (Exception e2) {}
 		}
+		return execute;
     }
     /**
      * 泛型确定要返回的entity类型，  注解标志entity的表名和字段别名
@@ -528,6 +537,7 @@ public class ConnectionUtils {
     		String sql = "update topic  set  flush_time="+flush_time+",flush_reply_num=flush_reply_num+"+commentSum+"    where topic_id = "+topicId;
     		log.info("update  sql:"+sql);
     		int executeUpdate = state.executeUpdate(sql);
+    		log.info("update  sql:"+sql+",result:"+executeUpdate);
     		if(executeUpdate!=1){
     			log.error("update sql fail ,sql :"+sql);
     		}
@@ -545,6 +555,7 @@ public class ConnectionUtils {
     		String sql = "update topic  set  flush_reply_num=flush_reply_num+"+commentSum+"    where topic_id = "+topicId;
     		log.info("update  sql:"+sql);
     		int executeUpdate = state.executeUpdate(sql);
+    		log.info("update  sql:"+sql+",result:"+executeUpdate);
     		if(executeUpdate!=1){
     			log.error("update sql fail ,sql :"+sql);
     		}
@@ -595,7 +606,5 @@ public class ConnectionUtils {
 			try {if(conn!=null){conn.close();}} catch (Exception e2) {}
 		}
     }
-    
-    
     
 }

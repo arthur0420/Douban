@@ -7,7 +7,7 @@
             ]]>
 		</property>
 		<property name="driverClass">com.mysql.jdbc.Driver</property>
-		<property name="user">root</property>
+		<property name="user">douban</property>
 		<property name="password">password</property>
 		<!--当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 -->
 		<property name="acquireIncrement">3</property>

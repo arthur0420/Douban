@@ -19,15 +19,15 @@ import arthur.douban.entity.Topic;
 import arthur.mq.message.MessageWrapper;
 import arthur.mq.utils.DataFormat;
 
-public class TopicEvent   implements Event {
+public class MTopicEvent   implements Event {
 	
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -3713819137514739892L;
-	private static Logger log = Logger.getLogger(TopicEvent.class);
+	private static final long serialVersionUID = -371381913751473989L;
+	private static Logger log = Logger.getLogger(MTopicEvent.class);
 	private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	String baseUrl = "https://www.douban.com/group/topic/"; ///?start=100
+	String baseUrl = "https://m.douban.com/group/topic/"; ///?start=100
 	
 	
 	String topicId;
@@ -51,13 +51,17 @@ public class TopicEvent   implements Event {
 		end = last_reply_num/100;
 		url = baseUrl+topicId+"/?start="+start*100;
 	}*/
-	public TopicEvent(String topicId,long flush_time,String group_name,int start,int end) {
+	public MTopicEvent(String topicId,long flush_time,String group_name,int start,int end) {
 		this.topicId = topicId;
 		this.flush_time = flush_time;
 		this.group_name = group_name;
 		this.start = start;
 		this.end = end;
-		url = baseUrl+topicId+"/?start="+start*100;
+		if(start == -1){
+			url = baseUrl+topicId;
+		}else{
+			url = baseUrl+topicId+"/comments?start="+start*25;
+		}
 	}
 	public String getUrl(){
 		return url;
@@ -68,7 +72,7 @@ public class TopicEvent   implements Event {
 			end();
 			return null;
 		}
-		if(start == 0){
+		if(start == -1){
 			parseHtmlFirst(reponseStr);
 		}else{
 			parseHtml(reponseStr);
@@ -82,20 +86,25 @@ public class TopicEvent   implements Event {
 	public void parseHtmlFirst(String str) throws Exception{
 		Document html = Jsoup.parse(str);
 		try {
-			Elements elements = html.getElementsByAttributeValue("class", "color-green");
+			Elements elements = html.getElementsByClass("timestamp");
 			Element element = elements.get(0);
 			String timeStr = element.text();
 			topicPublishTime = parseTime(timeStr);
+			
+			Element byid = html.getElementById("content");
+			String content= byid.text();
+			
+			
 			Topic topic = new Topic();
 			topic.setId(topicId);
+			topic.setContent(content);
 			topic.setPublish_time(topicPublishTime);
 			ConnectionUtils.updateEntity(topic);
 		} catch (Exception e) {
 		}
-		processDom(html);
 	}
 	private void processDom(Document html) throws Exception{
-		Element comments = html.getElementById("comments");
+		Element comments = html.getElementById("reply-list");
 		if(comments == null){
 			log.info("have no id  comments");
 			return ;
@@ -111,7 +120,7 @@ public class TopicEvent   implements Event {
 		List<Comment> cl = new ArrayList<Comment>();
 		for(int i = 0 ; i<lis.size() ;i++){
 			Element li =  lis.get(i);
-			String timeStr = li.getElementsByClass("pubtime").get(0).text();
+			String timeStr = li.getElementsByTag("time").get(0).text();
 			Long pubtime = parseTime(timeStr); // 单条发布时间
 			if(pubtime > flush_time){
 				Elements as = li.getElementsByTag("a");
@@ -120,14 +129,8 @@ public class TopicEvent   implements Event {
 				String[] split = authorHref.split("/");
 				String author = split[split.length-1]; //作者
 				
-				String content = li.getElementsByTag("p").get(0).text();
-				Elements shorts = li.getElementsByClass("short");
-				String quoteContent = "";
-				if(shorts!=null && shorts.size()>0){
-					quoteContent = shorts.get(0).text(); 
-					content =quoteContent +"<p>main</p>"+content; //内容
-				}
-				String id = li.attr("id");
+				String content = li.getElementsByClass("reply-content").get(0).text();
+				String id = li.getElementsByClass("reply-tool").get(0).attr("data-cid");
 				Comment comment = new Comment(id, topicId, author, content, pubtime, group_name);
 				cl.add(comment);
 				sum++; 
@@ -169,7 +172,7 @@ public class TopicEvent   implements Event {
 		ConnectionUtils.updateEntity(topic);
 	}
 	public static void main(String[] args) throws Exception {
-		byte[] byteArray = DataFormat.getByteArray(new TopicEvent("1", 1, "1", 1, 2));
+		byte[] byteArray = DataFormat.getByteArray(new MTopicEvent("1", 1, "1", 1, 2));
 		System.out.println(byteArray.length);
 	}
 	@Override

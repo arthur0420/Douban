@@ -43,8 +43,11 @@ public class EventProcess extends Thread {
 		while(loopFlag){
 			timestamp = System.currentTimeMillis();
 			try {
+				log.info("loop ----------------------------------------run");
 				for(int i = 0 ; i<consumerType.length ; i++){
+					
 					String topic =  consumerType[i];
+					log.info("loop ----------------------------------------Topic:"+topic);
 					Command command = new Command(CommandDefine.GETMESSAGE, topic, null, null, null);
 					MessageWrapper message = Consumer.getMessage(command);
 					byte[] data = message.getData();
@@ -96,6 +99,7 @@ public class EventProcess extends Thread {
 				log.error("EventProcess execute error",e);
 			}
 		}
+		log.info(" eventProcess run over");
 	}
 	
 	public  String excute(Event event) throws Exception{

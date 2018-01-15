@@ -13,7 +13,6 @@ public class Group  implements Serializable{
 	@Field(ignore=true)
 	private static final long serialVersionUID = 1L;
 	
-	
 	String id ;
 	String name ; // 名字
 	String url ; // 

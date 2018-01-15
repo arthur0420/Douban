@@ -14,6 +14,8 @@ import arthur.config.Config;
 import arthur.douban.httpUtils.UHttpClient;
 import arthur.douban.process.EventProcess;
 import arthur.douban.producer.GroupTimerTask;
+import arthur.douban.producer.MGroupTimerTask;
+import arthur.douban.producer.MTopicTimerTask;
 import arthur.douban.producer.TopicTimerTask;
 import arthur.mq.client.Consumer;
 import arthur.mq.server.ServerHold;
@@ -49,10 +51,10 @@ public class Main {
 		topicScannerInterval = Integer.parseInt(topicInterval);
 		
 		Timer groupSanner = new Timer();
-		groupSanner.schedule(new GroupTimerTask(),1000, groupScannerInterval*60*1000);
+		groupSanner.schedule(new MGroupTimerTask(),1000, groupScannerInterval*60*1000);
 		
 		Timer topicSanner = new Timer();
-		topicSanner.schedule(new TopicTimerTask(), 3000,topicScannerInterval *60*1000);
+		topicSanner.schedule(new MTopicTimerTask(), 3000,topicScannerInterval *60*1000);
 		
 		ServerHold.init();
 	}
