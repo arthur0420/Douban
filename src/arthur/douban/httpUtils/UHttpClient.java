@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -14,6 +16,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
@@ -43,8 +46,10 @@ public class UHttpClient {
 	private static RequestConfig rc ;
 	private static String USERNAME ;
 	private static String PASSWORD;
-	public static void init() throws Exception{
+	public static void clearCookieStore(){
 		
+	}
+	public static void init() throws Exception{
 		rc = RequestConfig.custom().setConnectionRequestTimeout(5000).setSocketTimeout(5000).setConnectTimeout(5000).build();
 		myStrategy =  new DefaultConnectionKeepAliveStrategy(){
 			@Override
@@ -81,9 +86,18 @@ public class UHttpClient {
         try {
             HttpGet httpGet = new HttpGet(url);
             httpGet.setHeader("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1");
-            //
             response  = httpclient.execute(httpGet);
             StatusLine httpStatus = response.getStatusLine();
+            Header[] headers = response.getHeaders("Set-Cookie");
+            if(headers.length >0){
+            	String value = headers[0].getValue();
+                log.info(value);
+            }
+            List<Cookie> cookies = cookieStore.getCookies();
+            for (int i = 0; i < cookies.size(); i++) {
+            	Cookie cookie = cookies.get(i);
+            	System.out.println(cookie.getName()+":"+cookie.getValue());
+			}
             int statusCode = httpStatus.getStatusCode();
             if( statusCode== 200){
             	HttpEntity entity = response.getEntity();
@@ -120,26 +134,11 @@ public class UHttpClient {
 	public static void main(String[] args) {
 		try {
 			UHttpClient.init();
-			String string = getApp("https://frodo.douban.com/api/v2/group/topic/111479588?"
-//					+ "udid=031d2121ac8b373f4534976b9b1d8661ff5448d"
-//					+ "&rom=android"
-//					+ "&apikey=0dad551ec0f84ed02907ff5c42e8ec70"
-//					+ "&s=rexxar_new"
-//					+ "&channel=Samsung_Market"
-//					+ "&device_id=03a1d2121ac8b373f4534976b9b1d8661ff5448d"
-//					+ "&os_rom=android"
-//					+ "&loc_id=118282"
-//					+ "&_sig=YL2AooTdtm0CWjLw7CKklMufbCk%3D"
-//					+ "&_ts=1515487825"
+			String string = get("https://www.douban.com/group/DiyGril/discussion?start=50"
+					);
+			get("https://www.douban.com/group/DiyGril/discussion?start=50"
 					);
 			
-//			JSONObject jsonObject = new JSONObject(string);
-			log.info(string);
-			Document html = Jsoup.parse(string);
-//			System.out.println(html);
-			Element comments = html.getElementById("comments");
-			Elements lis = comments.getElementsByTag("li");
-			System.out.println(lis.size());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

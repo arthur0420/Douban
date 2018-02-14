@@ -566,8 +566,7 @@ public class ConnectionUtils {
 			if(state!=null)state.close();
 		}
 	}
-    
-    
+	
     public static  <T> void  deleteEntity(T obj){
     	Connection conn = null;
 		Statement state = null;
